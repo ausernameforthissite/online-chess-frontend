@@ -1,25 +1,38 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { FC, useEffect } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { useAppSelector } from "./hooks/ReduxHooks";
+import Login from "./pages/login/Login";
+import Main from "./pages/main/Main";
+import Register from "./pages/register/Register";
+import AuthService from "./services/AuthService";
+import ProfileService from "./services/ProfileService";
+
 
 function App() {
+
+  const isLoggedIn: boolean = useAppSelector(state => state.loginData.isLoggedIn)
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      ProfileService.loadUserProfile()
+    }
+  }, [])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Main />} />
+        <Route
+          path="/login"
+          element={isLoggedIn ? <Navigate to="/" /> : <Login /> }
+        />
+        <Route
+          path="/register"
+          element={isLoggedIn ? <Navigate to="/" /> : <Register /> }
+        />
+      </Routes>
+    </BrowserRouter>
+
   );
 }
 
