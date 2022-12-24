@@ -1,13 +1,15 @@
 const Endpoints = {
+
   AUTH: {
-    REGISTER: '/auth/register',
-    LOGIN: '/auth/login',
-    REFRESH: '/auth/refresh',
-    LOGOUT: '/auth/logout'
+    REGISTER: 'http://localhost:8080/api/auth/register',
+    LOGIN: 'http://localhost:8080/api/auth/login',
+    REFRESH: 'http://localhost:8080/api/auth/refresh',
+    LOGOUT: 'http://localhost:8080/api/auth/logout'
   },
 
   RESOURCES: {
-    PROFILE: '/profile'
+    PROFILE: 'http://localhost:8080/api/profile',
+    FIND_MATCH: 'http://localhost:8081/api/find_match'
   }
 }
 

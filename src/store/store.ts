@@ -1,13 +1,15 @@
-import {AnyAction, CombinedState, combineReducers, configureStore, PayloadAction, Reducer} from "@reduxjs/toolkit";
-import LoginReducer, { LoginState } from "./reducers/LoginReducer";
+import {AnyAction, combineReducers, configureStore, Reducer} from "@reduxjs/toolkit";
+import LoginReducer from "./reducers/LoginReducer";
 import logger from 'redux-logger'
-import RegisterReducer, { RegisterState } from "./reducers/RegisterReducer";
-import ProfileReducer, { ProfileState } from "./reducers/ProfileReducer";
+import RegisterReducer from "./reducers/RegisterReducer";
+import ProfileReducer from "./reducers/ProfileReducer";
+import MatchReducer from "./reducers/MatchReducer";
 
 const combinedReducer = combineReducers({
     loginData: LoginReducer,
     registerData: RegisterReducer,
-    profileData: ProfileReducer
+    profileData: ProfileReducer,
+    matchData: MatchReducer
 })
 
 export type RootState = ReturnType<typeof combinedReducer>;

@@ -1,6 +1,4 @@
-import { AxiosPromise } from "axios";
 import { login, logout, refreshToken, register } from "../api/axiosFunctions/AuthAxiosFunctions";
-import { IAuthResponse } from "../models/IAuthResponse";
 import { ILoginRequest } from "../models/ILoginRequest";
 import { IRegisterRequest } from "../models/IRegisterRequest";
 import { loginSlice } from "../store/reducers/LoginReducer";
@@ -60,18 +58,9 @@ export default class AuthService {
     try {
       const accessToken = store.getState().loginData.accessToken
 
-      console.log("Inside get AccessToken method")
-
       if (!accessToken || isTokenExpired()) {
 
-        console.log("Token is expired")
-
-
         const res = await refreshToken()
-
-
-        console.log("Res is " + res.data)
-
         store.dispatch(loginSlice.actions.loginSucess(res.data))
 
         return res.data.accessToken

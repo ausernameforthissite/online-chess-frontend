@@ -9,6 +9,8 @@ const Main: FC = () => {
 
   const isLoggedIn: boolean = useAppSelector(state => state.loginData.isLoggedIn)
   const profile: string | null = useAppSelector(state => state.profileData.profile)
+  const matchId: number | null = useAppSelector(state => state.matchData.matchId)
+  const findMatchError: string | null = useAppSelector(state => state.matchData.error)
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -20,6 +22,12 @@ const Main: FC = () => {
     e.preventDefault();
 
     ProfileService.loadUserProfile()
+  };
+
+  const handleFindMatch= (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    ProfileService.findUserMatch()
   };
 
 
@@ -34,6 +42,14 @@ const Main: FC = () => {
           <p>Hello, user {profile}</p>
           <button onClick={handleLogout}>Logout</button>
           <button onClick={handleLoadProfile}>LoadProfile</button>
+          <button onClick={handleFindMatch}>Find Match</button>
+          
+          {matchId ?
+            <p>Match with id={matchId} was found</p>
+          :
+            <p>{findMatchError}</p>         
+          }
+
         </Fragment>
       : <p>Вы неавторизованы!</p>}
     </Fragment>

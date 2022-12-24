@@ -11,7 +11,7 @@ export const register = (params: IRegisterRequest): AxiosPromise =>
 export const login = (params: ILoginRequest): AxiosPromise<IAuthResponse> =>
   axiosInstance.post(Endpoints.AUTH.LOGIN, params)
 
-export const refreshToken = (): AxiosPromise<IAuthResponse> =>
+export const refreshToken = (): AxiosPromise<IAuthResponse> => 
   axiosInstance.get(Endpoints.AUTH.REFRESH)
 
 export const logout = (): AxiosPromise =>

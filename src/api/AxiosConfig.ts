@@ -3,7 +3,7 @@ import AuthService from "../services/AuthService";
 import { store } from "../store/store";
 import Endpoints from "./Endpoints";
 
-export const axiosInstance = axios.create({})
+export const axiosInstance = axios.create({ withCredentials: true })
 
 const urlsSkipAuth = [Endpoints.AUTH.REGISTER, Endpoints.AUTH.LOGIN,
                       Endpoints.AUTH.REFRESH, Endpoints.AUTH.LOGOUT]
