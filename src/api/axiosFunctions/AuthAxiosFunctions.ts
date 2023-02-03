@@ -1,18 +1,18 @@
 import { AxiosPromise } from "axios";
-import { IAuthResponse } from "../../models/IAuthResponse";
-import { ILoginRequest } from "../../models/ILoginRequest";
+import { IAuthResponse } from "../../models/DTO/auth/IAuthResponse";
 import Endpoints from "../Endpoints";
 import { axiosInstance } from "../AxiosConfig";
-import { IRegisterRequest } from "../../models/IRegisterRequest";
+import { IAuthRequest } from "../../models/DTO/auth/IAuthRequest";
 
-export const register = (params: IRegisterRequest): AxiosPromise =>
+
+export const registerAxios = (params: IAuthRequest): AxiosPromise =>
   axiosInstance.post(Endpoints.AUTH.REGISTER, params)
 
-export const login = (params: ILoginRequest): AxiosPromise<IAuthResponse> =>
+export const loginAxios = (params: IAuthRequest): AxiosPromise<IAuthResponse> =>
   axiosInstance.post(Endpoints.AUTH.LOGIN, params)
 
-export const refreshToken = (): AxiosPromise<IAuthResponse> => 
+export const refreshTokenAxios = (): AxiosPromise<IAuthResponse> => 
   axiosInstance.get(Endpoints.AUTH.REFRESH)
 
-export const logout = (): AxiosPromise =>
+export const logoutAxios = (): AxiosPromise =>
   axiosInstance.delete(Endpoints.AUTH.LOGOUT)

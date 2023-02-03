@@ -1,21 +1,19 @@
-import {AnyAction, combineReducers, configureStore, Reducer} from "@reduxjs/toolkit";
-import LoginReducer from "./reducers/LoginReducer";
+import { AnyAction, combineReducers, configureStore, Reducer } from "@reduxjs/toolkit";
+import authReducer from "./reducers/AuthReducer";
 import logger from 'redux-logger'
-import RegisterReducer from "./reducers/RegisterReducer";
-import ProfileReducer from "./reducers/ProfileReducer";
 import MatchReducer from "./reducers/MatchReducer";
 
+
 const combinedReducer = combineReducers({
-    loginData: LoginReducer,
-    registerData: RegisterReducer,
-    profileData: ProfileReducer,
+    authData: authReducer,
     matchData: MatchReducer
 })
+
 
 export type RootState = ReturnType<typeof combinedReducer>;
 
 const rootReducer: Reducer = (state: RootState, action: AnyAction) => {
-  if (action.type === "login/logoutResult") {
+  if (action.type === "auth/logoutResult") {
     state = {} as RootState;
   }
   return combinedReducer(state, action);
@@ -27,6 +25,8 @@ export const store = configureStore({
 })
 
 
+
+export default store;
 
 export type AppStore = typeof store
 export type AppDispatch = AppStore['dispatch']

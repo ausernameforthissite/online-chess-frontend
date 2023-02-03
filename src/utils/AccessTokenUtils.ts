@@ -1,25 +1,17 @@
 import { IAccessTokenInfo } from "../models/IAccessTokenInfo";
 import { store } from "../store/store";
 
-export const getTokenExpirationTime = (token: string | null): number | null => {
-  if (!token) {
-    return null;
-  }
-
+export const getTokenInfo = (token: string): IAccessTokenInfo => {
   const tokenInfo = token.split('.')[1]
   const tokenInfoDecoded = window.atob(tokenInfo)
-  const { exp }: IAccessTokenInfo = JSON.parse(tokenInfoDecoded)
-
-  return exp
+  return <IAccessTokenInfo>JSON.parse(tokenInfoDecoded)
 }
 
-export const isTokenExpired = () : boolean => {
-  const tokenExpirationTime = store.getState().loginData.accessTokenExpirationTime
 
-  if (!tokenExpirationTime) {
-    return true
+export const isTokenExpired = (tokenExpirationTime: number | null) : boolean => {
+  if (tokenExpirationTime == null) {
+    return true;
   }
-
   // there should be at least 30 seconds until token expires
   if ( tokenExpirationTime < (+ new Date() / 1000 + 30 ) ) {
     return true

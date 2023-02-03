@@ -1,16 +1,18 @@
-import React, { FC, Fragment } from "react";
+import React, { FC, Fragment, useState } from "react";
+import { useSelector } from "react-redux";
+import ModalWindow from "../../components/modal-window/ModalWindow";
 import Navbar from "../../components/Navbar/Navbar";
 import { useAppSelector } from "../../hooks/ReduxHooks";
 import AuthService from "../../services/AuthService";
-import ProfileService from "../../services/ProfileService";
+import MatchService from "../../services/MatchService";
+
 
 
 const Main: FC = () => {
 
-  const isLoggedIn: boolean = useAppSelector(state => state.loginData.isLoggedIn)
-  const profile: string | null = useAppSelector(state => state.profileData.profile)
-  const matchId: number | null = useAppSelector(state => state.matchData.matchId)
-  const findMatchError: string | null = useAppSelector(state => state.matchData.error)
+  const isLoggedIn: boolean = useAppSelector(state => state.authData.loggedIn)
+  const username: string | null = useAppSelector(state => state.authData.username)
+  const visible: boolean = useAppSelector(state => state.matchData.searching)
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -18,38 +20,27 @@ const Main: FC = () => {
     AuthService.logoutUser()
   };
 
-  const handleLoadProfile = (e: React.MouseEvent) => {
+  const handleFindMatch = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    ProfileService.loadUserProfile()
-  };
-
-  const handleFindMatch= (e: React.MouseEvent) => {
-    e.preventDefault();
-
-    ProfileService.findUserMatch()
+    MatchService.findMatch()
   };
 
 
   return (
     <Fragment>
       <Navbar/>
+      {/* <ModalWindow visible={visible}>
+        Text
+      </ModalWindow> */}
       <h1>
         Main page
       </h1>
       {isLoggedIn ? 
         <Fragment>
-          <p>Hello, user {profile}</p>
+          <p>Hello, user {username}</p>
           <button onClick={handleLogout}>Logout</button>
-          <button onClick={handleLoadProfile}>LoadProfile</button>
-          <button onClick={handleFindMatch}>Find Match</button>
-          
-          {matchId ?
-            <p>Match with id={matchId} was found</p>
-          :
-            <p>{findMatchError}</p>         
-          }
-
+          <button onClick={handleFindMatch}>Find match</button>
         </Fragment>
       : <p>Вы неавторизованы!</p>}
     </Fragment>

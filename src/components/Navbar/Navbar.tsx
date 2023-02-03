@@ -6,13 +6,16 @@ import { useAppSelector } from "../../hooks/ReduxHooks";
 
 const Navbar: FC = () => {
 
-  const isLoggedIn: boolean = useAppSelector(state => state.loginData.isLoggedIn)
+  const isLoggedIn: boolean = useAppSelector(state => state.authData.loggedIn)
 
   return (
     <nav>
       <ul>
         <li>
           <Link to="/">Main</Link>
+        </li>
+        <li>
+          <Link to="/match">Match</Link>
         </li>
         {!isLoggedIn && 
           <Fragment>

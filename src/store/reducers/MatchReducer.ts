@@ -1,16 +1,26 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { IFindMatchResponse } from '../../models/IFindMatchResponse'
+import { ChessColor } from '../../models/chess-game/ChessCommon'
+import { IChessMove } from '../../models/chess-game/IChessMove'
+import { IMatch } from '../../models/chess-game/IMatch'
+import { IFindMatchResponse } from '../../models/DTO/match/IFindMatchResponse'
+import { IMatchStateResponse } from '../../models/DTO/match/IMatchStateResponse'
 
 
-export interface MatchState {
-  matchId: number | null
-  isLoading: boolean
+type MatchState = {
+  searching: boolean
+  inMatch: boolean
+  matchId: number
+  match: IMatch | null
+  matchRecord: Array<IChessMove> | null
   error:  string | null
 }
 
 const initialState: MatchState = {
-  matchId: null,
-  isLoading: false,
+  searching: false,
+  inMatch: false,
+  matchId: -1,
+  match: null,
+  matchRecord: null,
   error:  null
 }
 
@@ -18,18 +28,31 @@ export const matchSlice = createSlice({
   name: 'match',
   initialState,
   reducers: {
-    findMatchStart(state: MatchState) {
-      state.isLoading = true
-      state.error = initialState.error
+    searchStart(state: MatchState) {
+      state.searching = true
+      state.error = null
     },
-    findMatchSucess(state: MatchState, action: PayloadAction<IFindMatchResponse>){
-      state.isLoading = false
+    searchSuccess(state: MatchState, action: PayloadAction<IFindMatchResponse>){
+      state.searching = false
       state.matchId = action.payload.matchId
     },
-    findMatchFailure(state: MatchState, action: PayloadAction<string>){
-      state.isLoading = false
+    searchFailure(state: MatchState, action: PayloadAction<string>){
+      state.searching = false
       state.error = action.payload
-    }
+    },
+    getMatchStateSuccess(state: MatchState, action: PayloadAction<IMatchStateResponse>){
+      state.match = action.payload.match
+      state.matchRecord = action.payload.matchRecord
+      
+      if (state.match.myMatch && !state.match.finished) {
+        state.inMatch = true
+      } else {
+        state.inMatch = false
+      }
+    },
+    getMatchStateFailure(state: MatchState, action: PayloadAction<string>){
+      state.error = action.payload
+    },
   }
 })
 

@@ -1,3 +1,3 @@
 export interface IProfileResponse {
-  profile: string
+  username: string
 }
