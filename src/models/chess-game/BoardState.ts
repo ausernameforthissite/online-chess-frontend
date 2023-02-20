@@ -1,5 +1,3 @@
-import { ChessPiece } from "./ChessPiece"
-import { PossibleMoveCell } from "./PossibleMoveCell"
+import { IBoardCellEntity } from "./IBoardCellEntity"
 
-
-export type BoardState = Array<Array<ChessPiece | PossibleMoveCell | null>>
+export type BoardState = Array<Array<IBoardCellEntity | null>>

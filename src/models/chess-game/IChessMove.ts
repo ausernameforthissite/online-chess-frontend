@@ -1,4 +1,6 @@
-import { ChessPieceEnum, IChessCoords } from "./ChessCommon";
+import { SubscribeResponse } from "../DTO/match/ISubscribeResponse";
+import {  IChessCoords } from "./ChessCommon";
+import { BoardCellEntityEnum } from "./IBoardCellEntity";
 
 export enum chessMoveResult {
   check = "CHECK",
@@ -7,11 +9,79 @@ export enum chessMoveResult {
 
 
 export interface IChessMove {
-  startPiece: ChessPieceEnum
+  startPiece: BoardCellEntityEnum
   startCoords: IChessCoords
-  endPiece: ChessPieceEnum
+  endPiece: BoardCellEntityEnum | null
   endCoords: IChessCoords
-  castling: number
-  pawnPromotionPiece: ChessPieceEnum
-  chessMoveResult: chessMoveResult
+  castling?: number
+  pawnPromotionPiece?: BoardCellEntityEnum
+  chessMoveResult?: chessMoveResult
+}
+
+export interface IChessMoveFullData extends IChessMove, SubscribeResponse {
+  startPieceFirstMove: boolean
+  endPieceFirstMove: boolean
+  previousEnPassantCoords: IChessCoords | null
+}
+
+export function chessMoveToString(chessMove: IChessMove): string {
+  let chessMoveString: string = "";
+
+  
+  if (chessMove.castling === 1) {
+    chessMoveString += "0-0";
+  } else if (chessMove.castling === -1) {
+    chessMoveString += "0-0-0";
+  } else {
+
+    chessMoveString += chessPiecePostionToString(chessMove.startPiece, chessMove.startCoords);
+
+    if (chessMove.endPiece || chessMove.startPiece === BoardCellEntityEnum.pawn && chessMove.startCoords.letterCoord != chessMove.endCoords.letterCoord) {
+      chessMoveString += "x"
+    } else {
+      chessMoveString += "—"
+    }
+
+    chessMoveString += chessPiecePostionToString(chessMove.endPiece, chessMove.endCoords);
+  }
+
+  if (chessMove.pawnPromotionPiece) {
+    chessMoveString += "=" + chessPieceToNotationLetter(chessMove.pawnPromotionPiece);
+  }
+
+  switch(chessMove.chessMoveResult) {
+    case chessMoveResult.check:
+      chessMoveString += "+";
+      break;
+    case chessMoveResult.mate:
+      chessMoveString += "#";
+      break;
+  }
+
+  return chessMoveString;
+
+  
+}
+
+function chessPieceToNotationLetter(chessPiece: BoardCellEntityEnum | null): string {
+  switch(chessPiece) {
+    case BoardCellEntityEnum.bishop:
+      return "B";
+    case BoardCellEntityEnum.king:
+      return "K";
+    case BoardCellEntityEnum.knight:
+      return "N";
+    case BoardCellEntityEnum.rook:
+      return "R";
+    case BoardCellEntityEnum.queen:
+      return "Q";
+    default:
+      return "";
+  }
+}
+
+function chessPiecePostionToString(chessPiece: BoardCellEntityEnum | null, coords: IChessCoords): string {
+  let chessPiecePostionString = chessPieceToNotationLetter(chessPiece);
+  chessPiecePostionString += String.fromCharCode(97 + coords.letterCoord) + coords.numberCoord
+  return chessPiecePostionString;
 }

@@ -1,35 +1,23 @@
-import _ from "lodash";
 import { BoardState } from "../BoardState";
-import { ChessColor, ChessPieceEnum, IChessCoords } from "../ChessCommon";
-import { ChessPiece, PieceViewStatus } from "../exports";
-import { IMatch } from "../IMatch";
+import { IChessCoords, PieceViewStatus } from "../ChessCommon";
+import { IChessPiece, CheckGoDiagonal, CheckGoHorizontal, CheckGoVertical, isAttakingFieldDiagonal, isAttakingFieldVertical, isAttakingFieldHorizontal, findKingCoords } from "../exports";
 
 
 
-export class Queen extends ChessPiece {
+export function findPossibleMovesQueen(currentPiece: IChessPiece, boardState: BoardState, startCoords: IChessCoords): void {
 
-  public type: ChessPieceEnum.queen
+    currentPiece.viewStatus = PieceViewStatus.selected
+    const kingCoords: IChessCoords = <IChessCoords>findKingCoords(boardState, currentPiece.color);
 
-  constructor(color: ChessColor) {
-    super(color)
-  }
-
-  public findPossibleMoves({boardState, enPassantPawnCoords}: IMatch, startCoords: IChessCoords): void {
-
-    this.viewStatus = PieceViewStatus.selected
-    const kingCoords: IChessCoords = <IChessCoords>ChessPiece.findKingCoords(boardState, this.color);
-
-    ChessPiece.CheckGoDiagonal(boardState, startCoords, kingCoords, this.color);
-    ChessPiece.CheckGoHorizontal(boardState, startCoords, kingCoords, this.color);
-    ChessPiece.CheckGoVertical(boardState, startCoords, kingCoords, this.color);
+    CheckGoDiagonal(boardState, startCoords, kingCoords, currentPiece.color);
+    CheckGoHorizontal(boardState, startCoords, kingCoords, currentPiece.color);
+    CheckGoVertical(boardState, startCoords, kingCoords, currentPiece.color);
   }
 
 
-  public isAttakingField(boardState: BoardState, startCoords: IChessCoords, endCoords: IChessCoords): boolean {
+export function isAttakingFieldQueen(boardState: BoardState, startCoords: IChessCoords, endCoords: IChessCoords): boolean {
 
-    return  ChessPiece.isAttakingFieldDiagonal(boardState, startCoords, endCoords) ||
-            ChessPiece.isAttakingFieldVertical(boardState, startCoords, endCoords) ||
-            ChessPiece.isAttakingFieldHorizontal(boardState, startCoords, endCoords);
-  }
-  
+  return  isAttakingFieldDiagonal(boardState, startCoords, endCoords) ||
+          isAttakingFieldVertical(boardState, startCoords, endCoords) ||
+          isAttakingFieldHorizontal(boardState, startCoords, endCoords);
 }

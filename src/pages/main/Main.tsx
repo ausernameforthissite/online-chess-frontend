@@ -1,6 +1,5 @@
 import React, { FC, Fragment, useState } from "react";
-import { useSelector } from "react-redux";
-import ModalWindow from "../../components/modal-window/ModalWindow";
+
 import Navbar from "../../components/Navbar/Navbar";
 import { useAppSelector } from "../../hooks/ReduxHooks";
 import AuthService from "../../services/AuthService";

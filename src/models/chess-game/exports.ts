@@ -1,2 +1,2 @@
-export * from './ChessPiece'
+export * from './IChessPiece'
 export * from './chess-pieces/King'

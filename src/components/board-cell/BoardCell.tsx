@@ -1,12 +1,11 @@
 import React, { Children, FC, Fragment, useEffect, useState } from "react";
 import { ChessColor, IChessCoords } from "../../models/chess-game/ChessCommon";
-import { PossibleMoveCell } from "../../models/chess-game/PossibleMoveCell";
 import styles from './BoardCell.module.css';
 
 type Props = {
   playerColor: ChessColor
   pieceCoords: IChessCoords
-  customClickEvent?: (e: React.MouseEvent<any>) => void
+  customClickEvent: (e: React.MouseEvent<any>, cellCoords: IChessCoords) => void
 };
 
 
@@ -20,27 +19,31 @@ const BoardCell: FC<Props> = ({playerColor, pieceCoords, customClickEvent}) => {
   let y : number
   let scale : number
 
+  if (playerColor === ChessColor.white) {
+    scale = 1
+    x = cellSize * pieceCoords.letterCoord
+    y = cellSize * (7 - pieceCoords.numberCoord)
+  } else {
+    scale = 1
+    x = cellSize * (7 - pieceCoords.letterCoord)
+    y = cellSize * pieceCoords.numberCoord
+  }
+
+
 
   useEffect(() => {
-    if (playerColor === ChessColor.white) {
-      scale = 1
-      x = cellSize * pieceCoords.letterCoord
-      y = cellSize * (7 - pieceCoords.numberCoord)
-    } else {
-      scale = -1
-      x = cellSize * pieceCoords.letterCoord
-      y = cellSize * (7 - pieceCoords.numberCoord)
-    }
-
     const actualStyle: React.CSSProperties = {
-      transform: `translate(${x}px, ${y}px) scaleY(${scale})`,
+      // transform: `translate(${x}px, ${y}px) scaleY(${scale})`
+      left: `${x}px`,
+      top: `${y}px`,
+      opacity: '1'
     };
 
     setMyStyle(actualStyle);
   },[]);
 
   return (
-    <div className={styles.BoardCell} style={myStyle}>
+    <div className={styles.boardCell} style={myStyle} onClick={ (e) => customClickEvent(e, pieceCoords)}>
       <div className={styles.dot}/>
     </div>
 

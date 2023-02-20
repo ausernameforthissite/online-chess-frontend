@@ -1,7 +1,9 @@
 
 
+import { AxiosPromise, AxiosResponse } from "axios";
 import { loginAxios, logoutAxios, refreshTokenAxios, registerAxios } from "../api/axiosFunctions/AuthAxiosFunctions";
 import { IAuthRequest } from "../models/DTO/auth/IAuthRequest";
+import { IAuthResponse } from "../models/DTO/auth/IAuthResponse";
 import { authSlice } from "../store/reducers/AuthReducer";
 import { RootState, store } from "../store/store";
 import { isTokenExpired } from "../utils/AccessTokenUtils";
@@ -10,6 +12,8 @@ import { myHistory } from "../utils/History";
 
 
 export default class AuthService {
+
+  private static refreshTokenPromise: AxiosPromise<IAuthResponse> | null = null;
 
 
   static async registerUser(registerRequest: IAuthRequest) : Promise<void> {
@@ -33,7 +37,6 @@ export default class AuthService {
       store.dispatch(authSlice.actions.loginStart())
       const res = await loginAxios(loginRequest)
       store.dispatch(authSlice.actions.loginSuccess(res.data))
-      console.log(res.data)
       myHistory.push('/') 
 
     } catch (e: any) {
@@ -62,11 +65,23 @@ export default class AuthService {
       const tokenExpirationTime = state.authData.accessTokenExpirationTime;
 
       if (!accessToken || isTokenExpired(tokenExpirationTime)) {
+        let res: AxiosResponse<IAuthResponse, any>;
+        let promise: AxiosPromise<IAuthResponse>;
 
-        const res = await refreshTokenAxios()
-        store.dispatch(authSlice.actions.loginSuccess(res.data))
+        if (state.authData.loading) {
+          if (AuthService.refreshTokenPromise) {
+            res = await AuthService.refreshTokenPromise
+            return res.data.accessToken
+          }
+        } else {
 
-        return res.data.accessToken
+          store.dispatch(authSlice.actions.loginStart());
+          AuthService.refreshTokenPromise = refreshTokenAxios();
+          res = await AuthService.refreshTokenPromise
+          store.dispatch(authSlice.actions.loginSuccess(res.data))
+          AuthService.refreshTokenPromise = null
+          return res.data.accessToken
+        }
       }
       
       return accessToken

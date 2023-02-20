@@ -1,90 +1,83 @@
-import _ from "lodash";
 import { BoardState } from "../BoardState";
-import { boardLength, ChessColor, ChessPieceEnum, IChessCoords } from "../ChessCommon";
-import { ChessPiece, PieceViewStatus } from "../exports";
-import { IMatch } from "../IMatch";
-import { PossibleMoveCell } from "../PossibleMoveCell";
-import { Rook } from "./Rook";
+import { boardLength, ChessColor, IChessCoords, PieceViewStatus } from "../ChessCommon";
+import { checkGoOrCapture, IChessPiece, isUnderAttack} from "../exports";
+import { BoardCellEntityEnum, IBoardCellEntity } from "../IBoardCellEntity";
+import { IPossibleMoveCell } from "../IPossibleMoveCell";
 
 
-export class King extends ChessPiece {
 
-  public firstMove: boolean
-  public check: boolean
-  public type: ChessPieceEnum.king
+export function findPossibleMovesKing(currentPiece: IChessPiece, boardState: BoardState, startCoords: IChessCoords): void {
 
-  constructor(color: ChessColor, firstMove: boolean, check: boolean) {
-    super(color)
-    this.firstMove = firstMove
-    this.check = check
-  }
+  currentPiece.viewStatus = PieceViewStatus.selected
+  let newCoords: IChessCoords;
 
-  public findPossibleMoves({boardState, enPassantPawnCoords}: IMatch, startCoords: IChessCoords): void {
-
-    this.viewStatus = PieceViewStatus.selected
-    let newCoords: IChessCoords;
-
-    for (let i: number = -1; i <= 1; i++) {
-      
-      for (let j: number = -1; j <= 1; j++) {
-        if (i === 0 && j === 0) {
-          continue;
-        }
-
-        newCoords = {numberCoord: startCoords.numberCoord + i, letterCoord: startCoords.letterCoord + j}
-        ChessPiece.checkGoOrCapture(boardState, startCoords, newCoords, startCoords, this.color);
+  for (let i: number = -1; i <= 1; i++) {
+    
+    for (let j: number = -1; j <= 1; j++) {
+      if (i === 0 && j === 0) {
+        continue;
       }
 
+      newCoords = {numberCoord: startCoords.numberCoord + i, letterCoord: startCoords.letterCoord + j}
+      checkGoOrCapture(boardState, startCoords, newCoords, newCoords, currentPiece.color);
     }
 
-    this.checkCastling(boardState, startCoords)
   }
 
-
-  private checkCastling(boardState: BoardState, startCoords: IChessCoords): void {
-    if (this.firstMove === true && !this.check) {
-
-      outerLoop:
-      for (let i: number = -1; i <= 1; i += 2) {
-        const rookInitialLetterCoord = i < 0 ? 0 : boardLength - 1;
-
-        if (boardState[startCoords.numberCoord][rookInitialLetterCoord] instanceof Rook) {
-
-          const myRook = <Rook>boardState[startCoords.numberCoord][rookInitialLetterCoord]
-
-          if (myRook.color === this.color && myRook.firstMove === true) {
-
-            let j = startCoords.letterCoord;
-
-
-            while (j != rookInitialLetterCoord - i) {
-              j += i;
-              if (boardState[startCoords.numberCoord][j] instanceof ChessPiece) {
-                continue outerLoop;
-              }
-
-            }
-
-            j = startCoords.letterCoord;
-            let endLetterCoord = startCoords.letterCoord + i * 2;
-
-            while (j != endLetterCoord) {
-              j += i;
-              if (ChessPiece.isUnderAttack(boardState, { numberCoord: startCoords.numberCoord, letterCoord: j}, this.color)) {
-                continue outerLoop;
-              }
-            }
-
-            boardState[startCoords.numberCoord][endLetterCoord] = new PossibleMoveCell();
-          }
-        }
-      }
-    }
-  }
-
-  protected isAttakingField(boardState: BoardState, startCoords: IChessCoords, endCoords: IChessCoords): boolean {
-    return Math.abs(endCoords.numberCoord - startCoords.numberCoord) <= 1
-            && Math.abs(endCoords.letterCoord - startCoords.letterCoord) <= 1;
-  }
-
+  checkCastling(currentPiece, boardState, startCoords)
 }
+
+
+function checkCastling(currentPiece: IChessPiece, boardState: BoardState, startCoords: IChessCoords): void {
+  if (currentPiece.firstMove) {
+
+    outerLoop:
+    for (let i: number = -1; i <= 1; i += 2) {
+      const rookInitialLetterCoord = i < 0 ? 0 : boardLength - 1;
+
+      if (boardState[startCoords.numberCoord][rookInitialLetterCoord] !== null &&
+          (<IBoardCellEntity>boardState[startCoords.numberCoord][rookInitialLetterCoord]).type === BoardCellEntityEnum.rook) {
+
+        const myRook = <IChessPiece>boardState[startCoords.numberCoord][rookInitialLetterCoord]
+
+        if (myRook.color === currentPiece.color && myRook.firstMove === true) {
+
+          let j = startCoords.letterCoord;
+
+
+          while (j != rookInitialLetterCoord - i) {
+            j += i;
+            if (boardState[startCoords.numberCoord][j] !== null &&
+              (<IBoardCellEntity>boardState[startCoords.numberCoord][j]).type != BoardCellEntityEnum.boardCell) {
+                
+              continue outerLoop;
+            }
+
+          }
+
+          j = startCoords.letterCoord - i;
+          let endLetterCoord = startCoords.letterCoord + i * 2;
+
+          while (j != endLetterCoord) {
+            j += i;
+            if (isUnderAttack(boardState, { numberCoord: startCoords.numberCoord, letterCoord: j}, currentPiece.color)) {
+              continue outerLoop;
+            }
+          }
+
+          boardState[startCoords.numberCoord][endLetterCoord] = <IPossibleMoveCell>{
+            type: BoardCellEntityEnum.boardCell,
+            castling: i
+          };
+        }
+      }
+    }
+  }
+}
+
+
+export function isAttakingFieldKing(startCoords: IChessCoords, endCoords: IChessCoords): boolean {
+  return Math.abs(endCoords.numberCoord - startCoords.numberCoord) <= 1
+          && Math.abs(endCoords.letterCoord - startCoords.letterCoord) <= 1;
+}
+

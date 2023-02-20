@@ -3,6 +3,10 @@ export enum ChessColor {
   black = "BLACK"
 }
 
+export enum ChessMoveViewStatus { default, selected }
+
+export enum PieceViewStatus { default, selected, underAttack };
+
 
 export function getInvertedColor(inputColor: ChessColor): ChessColor {
   if (inputColor === ChessColor.white) {
@@ -18,7 +22,7 @@ export interface IChessCoords {
   letterCoord: number
 }
 
-export function areCoordsEqual(fisrtCoords: IChessCoords, secondCoords: IChessCoords): boolean {
+export function areCoordsEqual(fisrtCoords: IChessCoords | null, secondCoords: IChessCoords | null): boolean {
 
   if (fisrtCoords === undefined || fisrtCoords === null
       || secondCoords === undefined || secondCoords === null) {
@@ -30,13 +34,8 @@ export function areCoordsEqual(fisrtCoords: IChessCoords, secondCoords: IChessCo
 }
 
 
-export enum ChessPieceEnum {
-  bishop = "BISHOP",
-  king = "KING",
-  knight = "KNIGHT",
-  pawn = "PAWN",
-  queen = "QUEEN",
-  rook = "ROOK"
-}
+
+
+
 
 export const boardLength: number = 8

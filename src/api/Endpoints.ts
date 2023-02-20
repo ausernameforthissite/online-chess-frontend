@@ -9,7 +9,7 @@ const Endpoints = {
 
   RESOURCES: {
     FIND_MATCH: 'http://localhost:8081/api/find_match',
-    MATCH_STATE_BASE: 'http://localhost:8082/api/match/'
+    MATCH_BASE: 'http://localhost:8082/api/match/'
   }
 }
 
