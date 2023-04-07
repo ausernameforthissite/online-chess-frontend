@@ -1,10 +1,9 @@
 import { IAccessTokenInfo } from "../models/IAccessTokenInfo";
-import { store } from "../store/store";
 
 export const getTokenInfo = (token: string): IAccessTokenInfo => {
   const tokenInfo = token.split('.')[1]
   const tokenInfoDecoded = window.atob(tokenInfo)
-  return <IAccessTokenInfo>JSON.parse(tokenInfoDecoded)
+  return JSON.parse(tokenInfoDecoded) as IAccessTokenInfo
 }
 
 

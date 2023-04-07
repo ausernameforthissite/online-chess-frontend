@@ -1,4 +1,6 @@
-const CHESS_MATCH = {
+const IMAGE_PATHS = {
+  siteLogo: require('./site-logo.svg').default,
+  menuIcon: require('./menu-icon.svg').default,
   chessField: require('./chess-field.png'),
   pieces:{
     black: {
@@ -20,4 +22,4 @@ const CHESS_MATCH = {
   }
 }
 
-export default CHESS_MATCH;
+export default IMAGE_PATHS;

@@ -1,0 +1,29 @@
+.menu {
+  position: fixed;
+  right: 30px;
+  top: 50px;
+  border-width: 1px;
+  text-decoration: none;
+  background-color: rgb(88, 120, 135);
+  border-color: rgba(30, 30, 30);
+  border-style: solid;
+}
+
+
+.menuOptionsContainer {
+  padding: 7px 0px;
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.menuOption {
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.menuOption:hover {
+  background-color: rgb(151, 164, 170);
+}
+
+

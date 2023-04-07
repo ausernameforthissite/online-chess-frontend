@@ -1,0 +1,9 @@
+.firstMoveTimer {
+  flex: 1;
+  background-color: rgb(30, 200, 100);
+  color:rgb(242, 232, 231);
+  padding-left: 10px;
+  font-size: 14pt;
+  display: flex;
+  flex-direction: row;
+}

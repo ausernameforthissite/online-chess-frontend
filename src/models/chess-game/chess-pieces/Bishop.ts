@@ -8,7 +8,7 @@ import { CheckGoDiagonal, findKingCoords, IChessPiece, isAttakingFieldDiagonal} 
 export function findPossibleMovesBishop(currentPiece: IChessPiece, boardState: BoardState, startCoords: IChessCoords): void {
 
   currentPiece.viewStatus = PieceViewStatus.selected;
-  const kingCoords: IChessCoords = <IChessCoords>findKingCoords(boardState, currentPiece.color);
+  const kingCoords: IChessCoords = findKingCoords(boardState, currentPiece.color) as IChessCoords;
   CheckGoDiagonal(boardState, startCoords, kingCoords, currentPiece.color);
 
 }

@@ -16,6 +16,14 @@ export function getInvertedColor(inputColor: ChessColor): ChessColor {
   }
 }
 
+export function getUserColorByMoveNumber(currentMoveNumber: number): ChessColor {
+  if (currentMoveNumber % 2 == 0) {
+    return ChessColor.white;
+  } else {
+    return ChessColor.black;
+  }
+}
+
 
 export interface IChessCoords {
   numberCoord: number

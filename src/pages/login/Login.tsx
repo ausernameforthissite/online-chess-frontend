@@ -1,5 +1,5 @@
 import React, { FC, FormEvent, useState } from "react"
-import AuthService from "../../services/AuthService";
+import { loginUser } from "../../services/AuthService";
 
 
 const Login: FC = () => {
@@ -10,7 +10,7 @@ const Login: FC = () => {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    AuthService.loginUser({username, password})
+    loginUser({username, password})
   };
 
 
@@ -39,4 +39,4 @@ const Login: FC = () => {
   )
 }
 
-export default Login
+export default Login;

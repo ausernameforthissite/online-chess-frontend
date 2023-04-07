@@ -1,5 +1,5 @@
 import axios, { AxiosError } from "axios";
-import AuthService from "../services/AuthService";
+import { getAccessToken, logoutUser } from "../services/AuthService";
 import { store } from "../store/store";
 import Endpoints from "./Endpoints";
 
@@ -13,7 +13,7 @@ axiosInstance.interceptors.request.use(async (config) => {
         return config
     }
 
-    const accessToken = await AuthService.getAccessToken()
+    const accessToken = await getAccessToken()
 
     if (accessToken) {
         const authorization = `Bearer ${accessToken}`
@@ -33,7 +33,7 @@ axiosInstance.interceptors.response.use(
   (error: AxiosError) => {
 
       if ((error.response?.status === 401) && store.getState().authData.loggedIn && error.request.url !== Endpoints.AUTH.LOGOUT) {
-          AuthService.logoutUser()
+          logoutUser()
       }
 
       throw error

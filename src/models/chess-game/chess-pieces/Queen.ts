@@ -7,7 +7,7 @@ import { IChessPiece, CheckGoDiagonal, CheckGoHorizontal, CheckGoVertical, isAtt
 export function findPossibleMovesQueen(currentPiece: IChessPiece, boardState: BoardState, startCoords: IChessCoords): void {
 
     currentPiece.viewStatus = PieceViewStatus.selected
-    const kingCoords: IChessCoords = <IChessCoords>findKingCoords(boardState, currentPiece.color);
+    const kingCoords: IChessCoords = findKingCoords(boardState, currentPiece.color) as IChessCoords;
 
     CheckGoDiagonal(boardState, startCoords, kingCoords, currentPiece.color);
     CheckGoHorizontal(boardState, startCoords, kingCoords, currentPiece.color);

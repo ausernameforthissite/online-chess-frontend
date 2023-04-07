@@ -1,0 +1,12 @@
+.mainTimer{
+  font-size: 28pt;
+  /* font-weight: 500; */
+  color: rgb(242, 232, 231);
+  width: 120px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 7px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}

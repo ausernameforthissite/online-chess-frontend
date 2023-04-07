@@ -12,7 +12,7 @@ import { IPossibleMoveCell } from "../IPossibleMoveCell";
 export function findPossibleMovesPawn(currentPiece: IChessPiece, boardState: BoardState, enPassantPawnCoords: IChessCoords | null, startCoords: IChessCoords): void {
 
   currentPiece.viewStatus = PieceViewStatus.selected
-  const kingCoords: IChessCoords = <IChessCoords>findKingCoords(boardState, currentPiece.color);
+  const kingCoords: IChessCoords = findKingCoords(boardState, currentPiece.color) as IChessCoords;
   const direction: number = currentPiece.color === ChessColor.white ? +1 : -1;
 
 
@@ -26,10 +26,10 @@ function checkGoForward(currentPiece: IChessPiece, boardState: BoardState, direc
     for (let i: number = 1; i <= (currentPiece.firstMove ? 2 : 1); i++) {
       let endNumberCoord = startCoords.numberCoord + i * direction;
 
-      if (boardState[endNumberCoord][startCoords.letterCoord] === null || (<IBoardCellEntity>boardState[endNumberCoord][startCoords.letterCoord]).type === BoardCellEntityEnum.boardCell) {
+      if (boardState[endNumberCoord][startCoords.letterCoord] === null || (boardState[endNumberCoord][startCoords.letterCoord] as IBoardCellEntity).type === BoardCellEntityEnum.boardCell) {
 
         if (!willBeCheck(boardState, startCoords, {numberCoord: endNumberCoord, letterCoord: startCoords.letterCoord}, kingCoords, currentPiece.color)) {
-          boardState[endNumberCoord][startCoords.letterCoord] = <IPossibleMoveCell>{type: BoardCellEntityEnum.boardCell};
+          boardState[endNumberCoord][startCoords.letterCoord] = {type: BoardCellEntityEnum.boardCell} as IPossibleMoveCell;
         }
 
       } else {
@@ -46,7 +46,7 @@ function checkCapture(currentPiece: IChessPiece, boardState: BoardState, enPassa
     const newNumberCoord = startCoords.numberCoord + direction;
 
     if (isCoordPossible(newLetterCoord)) {
-      if (boardState[newNumberCoord][newLetterCoord] !== null && (<IBoardCellEntity>boardState[newNumberCoord][newLetterCoord]).type !== BoardCellEntityEnum.boardCell) {
+      if (boardState[newNumberCoord][newLetterCoord] !== null && (boardState[newNumberCoord][newLetterCoord] as IBoardCellEntity).type !== BoardCellEntityEnum.boardCell) {
         checkNormalCapture(currentPiece, boardState,  startCoords, {numberCoord: newNumberCoord, letterCoord: newLetterCoord}, kingCoords)
       } else {
         checkEnPassant(currentPiece, boardState, enPassantPawnCoords, startCoords, {numberCoord: newNumberCoord, letterCoord: newLetterCoord}, kingCoords)
@@ -57,9 +57,9 @@ function checkCapture(currentPiece: IChessPiece, boardState: BoardState, enPassa
 }
 
 function checkNormalCapture(currentPiece: IChessPiece, boardState: BoardState, startCoords: IChessCoords, endCoords: IChessCoords, kingCoords: IChessCoords): void {
-  const endPiece = <IChessPiece>boardState[endCoords.numberCoord][endCoords.letterCoord];
+  const endPiece = boardState[endCoords.numberCoord][endCoords.letterCoord] as IChessPiece;
 
-  if (endPiece.color != currentPiece.color && !willBeCheck(boardState, startCoords, endCoords, kingCoords, currentPiece.color)) {
+  if (endPiece.color !== currentPiece.color && !willBeCheck(boardState, startCoords, endCoords, kingCoords, currentPiece.color)) {
     endPiece.viewStatus = PieceViewStatus.underAttack;
   }
 }
@@ -68,19 +68,19 @@ function checkNormalCapture(currentPiece: IChessPiece, boardState: BoardState, s
 function checkEnPassant(currentPiece: IChessPiece, boardState: BoardState, enPassantPawnCoords: IChessCoords | null, startCoords: IChessCoords, endCoords: IChessCoords, kingCoords: IChessCoords): void {
 
   if (areCoordsEqual(enPassantPawnCoords, {numberCoord: startCoords.numberCoord, letterCoord: endCoords.letterCoord}) && boardState[startCoords.numberCoord][endCoords.letterCoord] !== null
-                      && (<IBoardCellEntity>boardState[startCoords.numberCoord][endCoords.letterCoord]).type === BoardCellEntityEnum.pawn) {
+                      && (boardState[startCoords.numberCoord][endCoords.letterCoord] as IBoardCellEntity).type === BoardCellEntityEnum.pawn) {
 
-    const enemyPawn = <IChessPiece>boardState[startCoords.numberCoord][endCoords.letterCoord];
+    const enemyPawn = boardState[startCoords.numberCoord][endCoords.letterCoord] as IChessPiece;
 
-    if (enemyPawn.color != currentPiece.color) {
+    if (enemyPawn.color !== currentPiece.color) {
 
-      const tempBoardState= _.cloneDeep(boardState)
+      const tempBoardState: BoardState = _.cloneDeep(boardState)
       tempBoardState[endCoords.numberCoord][endCoords.letterCoord] = currentPiece;
       tempBoardState[startCoords.numberCoord][endCoords.letterCoord] = null;
       tempBoardState[startCoords.numberCoord][startCoords.letterCoord] = null;
   
       if (!isUnderAttack(tempBoardState, kingCoords, currentPiece.color)) {
-        boardState[endCoords.numberCoord][endCoords.letterCoord] = <IPossibleMoveCell>{type: BoardCellEntityEnum.boardCell};
+        boardState[endCoords.numberCoord][endCoords.letterCoord] = {type: BoardCellEntityEnum.boardCell} as IPossibleMoveCell;
       }
 
     }
@@ -93,7 +93,7 @@ export function isAttakingFieldPawn(currentPiece: IChessPiece, startCoords: IChe
 
   const direction: number = currentPiece.color === ChessColor.white ? +1 : -1;
 
-  if (startCoords.numberCoord + direction != endCoords.numberCoord) {
+  if (startCoords.numberCoord + direction !== endCoords.numberCoord) {
     return false;
   }
 

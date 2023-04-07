@@ -1,0 +1,44 @@
+.playerInfo {
+  height: 50px;
+  background-color: rgb(242, 232, 231);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+
+.onlineStatus {
+  margin-left: 10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border-width: 2px;
+  border-color: rgb(30, 30, 30);
+  border-style: solid;
+}
+
+.usernameAndRating {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+}
+
+
+.username {
+  flex: 1;
+  font-size: 16pt;
+  padding-left: 10px;
+}
+
+.rating {
+  width: 140px;
+  font-size: 20pt;
+  color: rgb(151, 164, 170);
+  display: flex;
+  flex-direction: row;
+  align-items: left;
+}
+
+
+

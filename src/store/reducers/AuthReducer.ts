@@ -2,8 +2,6 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { IAuthResponse } from '../../models/DTO/auth/IAuthResponse'
 import { getTokenInfo } from '../../utils/AccessTokenUtils'
 import { IAccessTokenInfo } from '../../models/IAccessTokenInfo'
-import { AxiosPromise } from 'axios'
-import { refreshTokenAxios } from '../../api/axiosFunctions/AuthAxiosFunctions'
 
 
 
@@ -16,9 +14,6 @@ type AuthState = {
   username: string | null
   error:  string | null
 }
-
-
-
 
 const initialState: AuthState = {
   accessToken: null,

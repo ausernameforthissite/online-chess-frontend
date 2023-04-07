@@ -1,0 +1,7 @@
+.chessCoord {
+  width: 25px;
+  height: 25px;
+  position: absolute;
+  font-weight: 700;
+  user-select: none;
+}

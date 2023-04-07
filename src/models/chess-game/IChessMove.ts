@@ -1,30 +1,55 @@
 import { SubscribeResponse } from "../DTO/match/ISubscribeResponse";
-import {  IChessCoords } from "./ChessCommon";
+import { IWebsocketSendMessage } from "../DTO/match/websocket/IWebsocketSendMessage";
+import { IChessCoords } from "./ChessCommon";
 import { BoardCellEntityEnum } from "./IBoardCellEntity";
 
-export enum chessMoveResult {
+export enum ChessMoveResult {
   check = "CHECK",
   mate = "MATE"
 }
 
 
-export interface IChessMove {
+export interface IChessMove extends IWebsocketSendMessage {
   startPiece: BoardCellEntityEnum
   startCoords: IChessCoords
   endPiece: BoardCellEntityEnum | null
   endCoords: IChessCoords
   castling?: number
   pawnPromotionPiece?: BoardCellEntityEnum
-  chessMoveResult?: chessMoveResult
 }
 
 export interface IChessMoveFullData extends IChessMove, SubscribeResponse {
+  moveNumber: number
+  result?: ChessMoveResult
   startPieceFirstMove: boolean
   endPieceFirstMove: boolean
   previousEnPassantCoords: IChessCoords | null
+
+  whiteTimeLeftMS: number
+  blackTimeLeftMS: number
 }
 
-export function chessMoveToString(chessMove: IChessMove): string {
+export function chessMoveToChessMoveFullData(chessMove: IChessMove, moveNumber: number, startPieceFirstMove: boolean,
+                                             endPieceFirstMove: boolean, previousEnPassantCoords: IChessCoords | null,
+                                             whiteTimeLeftMS: number, blackTimeLeftMS: number, result?: ChessMoveResult): IChessMoveFullData  {
+    console.log(previousEnPassantCoords)
+   return {startPiece: chessMove.startPiece,
+          startCoords: chessMove.startCoords,
+          endPiece: chessMove.endPiece,
+          endCoords: chessMove.endCoords,
+          castling: chessMove.castling,
+          pawnPromotionPiece: chessMove.pawnPromotionPiece,
+          moveNumber: moveNumber,
+          result: result,
+          startPieceFirstMove: startPieceFirstMove,
+          endPieceFirstMove: endPieceFirstMove,
+          previousEnPassantCoords: previousEnPassantCoords,
+          whiteTimeLeftMS: whiteTimeLeftMS,
+          blackTimeLeftMS: blackTimeLeftMS
+   } as IChessMoveFullData;
+}
+
+export function chessMoveToString(chessMove: IChessMoveFullData): string {
   let chessMoveString: string = "";
 
   
@@ -36,7 +61,7 @@ export function chessMoveToString(chessMove: IChessMove): string {
 
     chessMoveString += chessPiecePostionToString(chessMove.startPiece, chessMove.startCoords);
 
-    if (chessMove.endPiece || chessMove.startPiece === BoardCellEntityEnum.pawn && chessMove.startCoords.letterCoord != chessMove.endCoords.letterCoord) {
+    if (chessMove.endPiece || (chessMove.startPiece === BoardCellEntityEnum.pawn && chessMove.startCoords.letterCoord !== chessMove.endCoords.letterCoord)) {
       chessMoveString += "x"
     } else {
       chessMoveString += "—"
@@ -49,17 +74,17 @@ export function chessMoveToString(chessMove: IChessMove): string {
     chessMoveString += "=" + chessPieceToNotationLetter(chessMove.pawnPromotionPiece);
   }
 
-  switch(chessMove.chessMoveResult) {
-    case chessMoveResult.check:
+
+  switch(chessMove.result) {
+    case ChessMoveResult.check:
       chessMoveString += "+";
       break;
-    case chessMoveResult.mate:
+    case ChessMoveResult.mate:
       chessMoveString += "#";
       break;
   }
 
   return chessMoveString;
-
   
 }
 

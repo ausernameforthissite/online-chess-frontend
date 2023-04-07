@@ -16,3 +16,6 @@ export const refreshTokenAxios = (): AxiosPromise<IAuthResponse> =>
 
 export const logoutAxios = (): AxiosPromise =>
   axiosInstance.delete(Endpoints.AUTH.LOGOUT)
+
+  export const accessCookie = (): AxiosPromise =>
+  axiosInstance.get(Endpoints.AUTH.ACCESS_COOKIE)

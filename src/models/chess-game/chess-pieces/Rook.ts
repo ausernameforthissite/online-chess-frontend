@@ -8,7 +8,7 @@ import { CheckGoHorizontal, CheckGoVertical, findKingCoords, IChessPiece, isAtta
 export function findPossibleMovesRook(currentPiece: IChessPiece, boardState: BoardState, startCoords: IChessCoords): void {
 
   currentPiece.viewStatus = PieceViewStatus.selected
-  const kingCoords: IChessCoords = <IChessCoords>findKingCoords(boardState, currentPiece.color);
+  const kingCoords: IChessCoords = findKingCoords(boardState, currentPiece.color) as IChessCoords;
 
   CheckGoVertical(boardState, startCoords, kingCoords, currentPiece.color)
   CheckGoHorizontal(boardState, startCoords, kingCoords, currentPiece.color)

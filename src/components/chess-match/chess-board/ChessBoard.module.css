@@ -1,0 +1,8 @@
+.chessBoard {
+  width: 800px;
+  height: 800px;
+  /* z-index: 2; */
+  display: flex;
+  position: relative
+}
+

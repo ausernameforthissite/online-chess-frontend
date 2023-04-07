@@ -1,6 +1,6 @@
 import React, { FC, FormEvent, useState } from "react"
-import AuthService from "../../services/AuthService";
-
+import { registerUser } from "../../services/AuthService";
+import styles from '../Auth.module.css';
 
 const Register: FC = () => {
 
@@ -14,7 +14,7 @@ const Register: FC = () => {
 
     if (password === passwordRepeat) {
       setPasswordError("")
-      AuthService.registerUser({username, password})
+      registerUser({username, password})
     } else {
       setPasswordError("Введённые пароли не совпадают!")
     }
@@ -22,37 +22,77 @@ const Register: FC = () => {
 
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="username">Username:</label>
-        <input
-          name="username"
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-      </div>
-      <div>
-        <label htmlFor="password">Password:</label>
-        <input
-          name="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
-      <div>
-        <label htmlFor="passwordRepeat">Repeat password:</label>
-        <input
-          name="passwordRepeat"
-          type="password"
-          value={passwordRepeat}
-          onChange={(e) => setPasswordRepeat(e.target.value)}
-        />
-      </div>
-      {passwordError && <div>{passwordError}</div>}
-      <button>Submit</button>
-    </form>
+
+    <div className={styles.authContainer}>
+      <form onSubmit={handleSubmit}>
+        <span className={styles.textCenter}>login</span>
+        <div className={styles.inputContainer}>
+          <input
+            type="text"
+            required
+            minLength={1}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <label>Логин</label>		
+        </div>
+        <div className={styles.inputContainer}>		
+          <input
+            type="password"
+            required
+            minLength={1}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <label>Пароль</label>
+        </div>
+        <div className={styles.inputContainer}>		
+          <input
+              type="password"
+              required
+              minLength={1}
+              value={passwordRepeat}
+              onChange={(e) => setPasswordRepeat(e.target.value)}
+            />
+          <label>Ещё раз</label>
+        </div>
+
+        {passwordError && <div>{passwordError}</div>}
+        <button type="button" className={styles.myButton}>Отправить</button>
+      </form>	
+    </div>
+
+    // <form onSubmit={handleSubmit}>
+    //   <div>
+    //     <label htmlFor="username">Username:</label>
+    //     <input
+    //       name="username"
+    //       type="text"
+    //       value={username}
+    //       onChange={(e) => setUsername(e.target.value)}
+    //     />
+    //   </div>
+    //   <div>
+    //     <label htmlFor="password">Password:</label>
+    //     <input
+    //       name="password"
+    //       type="password"
+    //       value={password}
+    //       onChange={(e) => setPassword(e.target.value)}
+    //     />
+    //   </div>
+    //   <div>
+    //     <label htmlFor="passwordRepeat">Repeat password:</label>
+    //     <input
+    //       name="passwordRepeat"
+    //       type="password"
+    //       value={passwordRepeat}
+    //       onChange={(e) => setPasswordRepeat(e.target.value)}
+    //     />
+    //   </div>
+    //   {passwordError && <div>{passwordError}</div>}
+    //   <button>Submit</button>
+    // </form>
   )
 }
 

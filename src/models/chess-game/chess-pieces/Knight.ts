@@ -8,7 +8,7 @@ import { checkGoOrCapture, findKingCoords, IChessPiece, isCoordPossible } from "
 export function findPossibleMovesKnight(currentPiece: IChessPiece, boardState: BoardState, startCoords: IChessCoords): void {
 
   currentPiece.viewStatus = PieceViewStatus.selected;
-  const kingCoords: IChessCoords = <IChessCoords>findKingCoords(boardState, currentPiece.color);
+  const kingCoords: IChessCoords = findKingCoords(boardState, currentPiece.color) as IChessCoords;
 
 
   let newLetterCoord;

@@ -1,0 +1,22 @@
+.menu {
+  width: 200px;
+}
+
+
+.menuOptionsContainer {
+  padding: 7px 10px;
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.menuOption {
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.menuOption:hover {
+  background-color: rgb(88, 120, 135);
+}
+
+

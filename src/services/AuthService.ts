@@ -10,87 +10,82 @@ import { isTokenExpired } from "../utils/AccessTokenUtils";
 import { myHistory } from "../utils/History";
 
 
-
-export default class AuthService {
-
-  private static refreshTokenPromise: AxiosPromise<IAuthResponse> | null = null;
+let refreshTokenPromise: AxiosPromise<IAuthResponse> | null = null;
 
 
-  static async registerUser(registerRequest: IAuthRequest) : Promise<void> {
-    try {
+export async function registerUser(registerRequest: IAuthRequest) : Promise<void> {
+  try {
 
-      store.dispatch(authSlice.actions.registerStart())
-      const res = await registerAxios(registerRequest)
-      store.dispatch(authSlice.actions.registerSuccess(res.data))
-      myHistory.push('/login') 
+    store.dispatch(authSlice.actions.registerStart())
+    const res = await registerAxios(registerRequest)
+    store.dispatch(authSlice.actions.registerSuccess(res.data))
+    myHistory.push('/login') 
 
-    } catch (e: any) {
-      console.error(e)
-      store.dispatch(authSlice.actions.registerFailure(e.message))
-    }
+  } catch (e: any) {
+    console.error(e)
+    store.dispatch(authSlice.actions.registerFailure(e.message))
   }
+}
 
 
-  static async loginUser(loginRequest: IAuthRequest) : Promise<void> {
-    try {
+export async function loginUser(loginRequest: IAuthRequest) : Promise<void> {
+  try {
 
-      store.dispatch(authSlice.actions.loginStart())
-      const res = await loginAxios(loginRequest)
-      store.dispatch(authSlice.actions.loginSuccess(res.data))
-      myHistory.push('/') 
+    store.dispatch(authSlice.actions.loginStart())
+    const res = await loginAxios(loginRequest)
+    store.dispatch(authSlice.actions.loginSuccess(res.data))
+    myHistory.push('/') 
 
-    } catch (e: any) {
-      console.error(e)
-      store.dispatch(authSlice.actions.loginFailure(e.message))
-    }
+  } catch (e: any) {
+    console.error(e)
+    store.dispatch(authSlice.actions.loginFailure(e.message))
   }
+}
 
 
-  static async logoutUser() : Promise<void> {
-    try {
+export async function logoutUser() : Promise<void> {
+  try {
 
-      await logoutAxios()
-      
-    } finally {
-      store.dispatch(authSlice.actions.logoutResult())
-      myHistory.push('/') 
-    }
+    await logoutAxios()
+    
+  } finally {
+    store.dispatch(authSlice.actions.logoutResult())
+    myHistory.push('/') 
   }
+}
 
 
-  static async getAccessToken() : Promise<string | null> {
-    try {
-      const state: RootState = store.getState();
-      const accessToken = state.authData.accessToken;
-      const tokenExpirationTime = state.authData.accessTokenExpirationTime;
+export async function getAccessToken() : Promise<string | null> {
+  try {
+    const state: RootState = store.getState();
+    const accessToken = state.authData.accessToken;
+    const tokenExpirationTime = state.authData.accessTokenExpirationTime;
 
-      if (!accessToken || isTokenExpired(tokenExpirationTime)) {
-        let res: AxiosResponse<IAuthResponse, any>;
-        let promise: AxiosPromise<IAuthResponse>;
+    if (!accessToken || isTokenExpired(tokenExpirationTime)) {
+      let res: AxiosResponse<IAuthResponse, any>;
+      let promise: AxiosPromise<IAuthResponse>;
 
-        if (state.authData.loading) {
-          if (AuthService.refreshTokenPromise) {
-            res = await AuthService.refreshTokenPromise
-            return res.data.accessToken
-          }
-        } else {
-
-          store.dispatch(authSlice.actions.loginStart());
-          AuthService.refreshTokenPromise = refreshTokenAxios();
-          res = await AuthService.refreshTokenPromise
-          store.dispatch(authSlice.actions.loginSuccess(res.data))
-          AuthService.refreshTokenPromise = null
+      if (state.authData.loading) {
+        if (refreshTokenPromise) {
+          res = await refreshTokenPromise
           return res.data.accessToken
         }
+      } else {
+
+        store.dispatch(authSlice.actions.loginStart());
+        refreshTokenPromise = refreshTokenAxios();
+        res = await refreshTokenPromise
+        store.dispatch(authSlice.actions.loginSuccess(res.data))
+        refreshTokenPromise = null
+        return res.data.accessToken
       }
-      
-      return accessToken
-
-    } catch (e: any) {
-        console.error(e)
-        store.dispatch(authSlice.actions.loginFailure(e.message))
-        return null
     }
-  }
+    
+    return accessToken
 
+  } catch (e: any) {
+      console.error(e)
+      store.dispatch(authSlice.actions.loginFailure(e.message))
+      return null
+  }
 }

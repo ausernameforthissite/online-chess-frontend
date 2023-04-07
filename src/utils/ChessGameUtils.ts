@@ -1,13 +1,14 @@
-import CHESS_MATCH from "../images/ImagesConstants";
+import IMAGE_PATHS from "../images/ImagesConstants";
 import { BoardState } from "../models/chess-game/BoardState";
 import { boardLength, ChessColor, getInvertedColor, IChessCoords, PieceViewStatus } from "../models/chess-game/ChessCommon";
 import { changeBoardStateOneMove, IChessPiece } from "../models/chess-game/exports";
 import { BoardCellEntityEnum, IBoardCellEntity } from "../models/chess-game/IBoardCellEntity";
+import { IChessMatchResult } from "../models/chess-game/IChessMatchResult";
 import { IChessMoveFullData } from "../models/chess-game/IChessMove";
 
 
 export function getChessPieceImagePath(chessPiece: IChessPiece): string {
-  const color = chessPiece.color === ChessColor.white ? CHESS_MATCH.pieces.white : CHESS_MATCH.pieces.black
+  const color = chessPiece.color === ChessColor.white ? IMAGE_PATHS.pieces.white : IMAGE_PATHS.pieces.black
 
   switch (chessPiece.type) {
     case BoardCellEntityEnum.bishop:
@@ -29,28 +30,26 @@ export function getChessPieceImagePath(chessPiece: IChessPiece): string {
 
 
 export function deleteSelectionFromBoardState(boardState: BoardState): void {
-  for (let i: number = 0; i <  boardState.length; i++) {
-    for (let j: number = 0; j <  boardState[i].length; j++) {
+  for (let i: number = 0; i < boardState.length; i++) {
+    for (let j: number = 0; j < boardState[i].length; j++) {
       if (boardState[i][j] !== null) {
 
-        if ((<IBoardCellEntity>boardState[i][j]).type === BoardCellEntityEnum.boardCell) {
+        if ((boardState[i][j] as IBoardCellEntity).type === BoardCellEntityEnum.boardCell) {
           boardState[i][j] = null;
-        } else if ((<IChessPiece>boardState[i][j]).viewStatus !== PieceViewStatus.default) {
-          (<IChessPiece>boardState[i][j]).viewStatus = PieceViewStatus.default;
+        } else if ((boardState[i][j] as IChessPiece).viewStatus !== PieceViewStatus.default) {
+          (boardState[i][j] as IChessPiece).viewStatus = PieceViewStatus.default;
         }
       }
     }
   }
 }
 
-export const makeChessMoveForward = (boardState: BoardState, enPassantPawnCoords: IChessCoords | null, chessMove: IChessMoveFullData): void => {
-  const startPiece: IChessPiece = <IChessPiece>boardState[chessMove.startCoords.numberCoord][chessMove.startCoords.letterCoord];
+export const makeChessMoveForward = (boardState: BoardState, chessMove: IChessMoveFullData): (IChessCoords | null) => {
+  const startPiece: IChessPiece = boardState[chessMove.startCoords.numberCoord][chessMove.startCoords.letterCoord] as IChessPiece;
       
   if (startPiece.firstMove) {
     startPiece.firstMove = false;
   }
-
-  enPassantPawnCoords = null;
 
   changeBoardStateOneMove(boardState, chessMove.startCoords, chessMove.endCoords);
 
@@ -58,8 +57,8 @@ export const makeChessMoveForward = (boardState: BoardState, enPassantPawnCoords
     const rookInitialLetterCoord: number = chessMove.castling < 0 ? 0 : boardLength - 1;
     changeBoardStateOneMove(boardState, {numberCoord: chessMove.endCoords.numberCoord, letterCoord: rookInitialLetterCoord},
                           {numberCoord: chessMove.endCoords.numberCoord, letterCoord: chessMove.endCoords.letterCoord - chessMove.castling});
-    (<IChessPiece>boardState[chessMove.endCoords.numberCoord][chessMove.endCoords.letterCoord - chessMove.castling]).firstMove = false;
-    return;
+    (boardState[chessMove.endCoords.numberCoord][chessMove.endCoords.letterCoord - chessMove.castling] as IChessPiece).firstMove = false;
+    return null;
   }
 
 
@@ -68,7 +67,7 @@ export const makeChessMoveForward = (boardState: BoardState, enPassantPawnCoords
     if (chessMove.endPiece === null && chessMove.startCoords.letterCoord !== chessMove.endCoords.letterCoord) {
       boardState[chessMove.startCoords.numberCoord][chessMove.endCoords.letterCoord] = null;
     } else if (Math.abs(chessMove.startCoords.numberCoord - chessMove.endCoords.numberCoord) === 2) {
-      enPassantPawnCoords = chessMove.endCoords;
+      return chessMove.endCoords;
     }
 
     if (chessMove.pawnPromotionPiece) {
@@ -78,14 +77,14 @@ export const makeChessMoveForward = (boardState: BoardState, enPassantPawnCoords
       }
     }
   }
+
+  return null;
 }
 
 
+export const makeChessMoveBackward = (boardState: BoardState, chessMove: IChessMoveFullData): (IChessCoords | null) => {
 
-
-export const makeChessMoveBackward = (boardState: BoardState, enPassantPawnCoords: IChessCoords | null, chessMove: IChessMoveFullData): void => {
-
-  enPassantPawnCoords = chessMove.previousEnPassantCoords;
+  let enPassantPawnCoords: IChessCoords | null = chessMove.previousEnPassantCoords;
 
   if (chessMove.castling) {
     const rookInitialLetterCoord: number = chessMove.castling < 0 ? 0 : boardLength - 1;
@@ -95,10 +94,10 @@ export const makeChessMoveBackward = (boardState: BoardState, enPassantPawnCoord
 
     changeBoardStateOneMove(boardState, chessMove.endCoords, chessMove.startCoords);
     (boardState[chessMove.startCoords.numberCoord][chessMove.startCoords.letterCoord] as IChessPiece).firstMove = true;
-    return;
+    return enPassantPawnCoords;
   } 
 
-  let startPiece: IChessPiece = <IChessPiece>boardState[chessMove.endCoords.numberCoord][chessMove.endCoords.letterCoord];
+  let startPiece: IChessPiece = boardState[chessMove.endCoords.numberCoord][chessMove.endCoords.letterCoord] as IChessPiece;
 
   if (chessMove.pawnPromotionPiece) {
     startPiece = {type: BoardCellEntityEnum.pawn, color: startPiece.color}
@@ -125,6 +124,8 @@ export const makeChessMoveBackward = (boardState: BoardState, enPassantPawnCoord
   }
 
   boardState[chessMove.endCoords.numberCoord][chessMove.endCoords.letterCoord] = endPiece;
+
+  return enPassantPawnCoords;
 }
 
 
@@ -137,5 +138,61 @@ export function updateBoardState(boardState: BoardState, newBoardState: BoardSta
         boardState[i][j] = newBoardState[i][j];
       }
     }
+  }
+}
+
+export function doesChessPieceTypeHaveFirstMoveField(chessPieceType: BoardCellEntityEnum) {
+  return chessPieceType === BoardCellEntityEnum.king || chessPieceType === BoardCellEntityEnum.pawn || chessPieceType === BoardCellEntityEnum.rook;
+}
+
+export function getDefaultBoardState(): BoardState {
+  const boardState: BoardState = new Array(boardLength);
+  for (let i: number = 0; i < boardLength; i++) {
+    boardState[i] = new Array(boardLength);
+    if (i >= 2 && i <= 6) {
+      for (let j: number = 0; j < boardLength; j ++) {
+        boardState[i][j] = null;
+      }
+    }
+  }
+  
+
+  for (let i: number = 0; i < 8; i++) {
+    boardState[1][i] = {type: BoardCellEntityEnum.pawn, color: ChessColor.white, firstMove: true} as IChessPiece;
+    boardState[6][i] = {type: BoardCellEntityEnum.pawn, color: ChessColor.black, firstMove: true} as IChessPiece;
+  }
+
+  boardState[0][0] = {type: BoardCellEntityEnum.rook, color: ChessColor.white, firstMove: true} as IChessPiece;
+  boardState[0][1] = {type: BoardCellEntityEnum.knight, color: ChessColor.white} as IChessPiece;
+  boardState[0][2] = {type: BoardCellEntityEnum.bishop, color: ChessColor.white} as IChessPiece;
+  boardState[0][3] = {type: BoardCellEntityEnum.queen, color: ChessColor.white} as IChessPiece;
+  boardState[0][4] = {type: BoardCellEntityEnum.king, color: ChessColor.white, firstMove: true} as IChessPiece;
+  boardState[0][5] = {type: BoardCellEntityEnum.bishop, color: ChessColor.white} as IChessPiece;
+  boardState[0][6] = {type: BoardCellEntityEnum.knight, color: ChessColor.white} as IChessPiece;
+  boardState[0][7] = {type: BoardCellEntityEnum.rook, color: ChessColor.white, firstMove: true} as IChessPiece;
+
+  boardState[7][0] = {type: BoardCellEntityEnum.rook, color: ChessColor.black, firstMove: true} as IChessPiece;
+  boardState[7][1] = {type: BoardCellEntityEnum.knight, color: ChessColor.black} as IChessPiece;
+  boardState[7][2] = {type: BoardCellEntityEnum.bishop, color: ChessColor.black} as IChessPiece;
+  boardState[7][3] = {type: BoardCellEntityEnum.queen, color: ChessColor.black} as IChessPiece;
+  boardState[7][4] = {type: BoardCellEntityEnum.king, color: ChessColor.black, firstMove: true} as IChessPiece;
+  boardState[7][5] = {type: BoardCellEntityEnum.bishop, color: ChessColor.black} as IChessPiece;
+  boardState[7][6] = {type: BoardCellEntityEnum.knight, color: ChessColor.black} as IChessPiece;
+  boardState[7][7] = {type: BoardCellEntityEnum.rook, color: ChessColor.black, firstMove: true} as IChessPiece;
+
+
+  return boardState;
+}
+
+
+export function getMatchResultString(matchResult: IChessMatchResult): string {
+  if (matchResult.technicalFinish) {
+    return "Техническое завершение игры";
+  } else if (matchResult.draw) {
+    return "Ничья";
+  } else if (matchResult.winnerColor === ChessColor.white) {
+    return "Победа белых";
+  } else {
+    return "Победа чёрных";
   }
 }

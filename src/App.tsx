@@ -1,12 +1,14 @@
 import React, { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "./hooks/ReduxHooks";
+import Navbar from "./components/navbar/Navbar";
+import { useAppSelector } from "./hooks/ReduxHooks";
 import Login from "./pages/login/Login";
-import Main from "./pages/main/Main";
+import SearchGame from "./pages/search-game/SearchGame";
 import Match from "./pages/match/Match";
+import Profile from "./pages/profile/Profile";
+import Rating from "./pages/rating/Rating";
 import Register from "./pages/register/Register";
-import AuthService from "./services/AuthService";
-import { authSlice } from "./store/reducers/AuthReducer";
+import { getAccessToken } from "./services/AuthService";
 import { myHistory } from "./utils/History";
 import { HistoryRouter } from "./utils/HistoryRouter";
 
@@ -14,13 +16,12 @@ import { HistoryRouter } from "./utils/HistoryRouter";
 
 function App() {
 
-  const isLoggedIn: boolean = useAppSelector(state => state.authData.loggedIn)
-  const dispatch = useAppDispatch();
+  const loggedIn: boolean = useAppSelector(state => state.authData.loggedIn)
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!loggedIn) {
 
-      AuthService.getAccessToken();
+      getAccessToken();
      
     }
   }, [])
@@ -28,15 +29,21 @@ function App() {
   
   return (
     <HistoryRouter history={myHistory}>
+      <Navbar/>
       <Routes>
-        <Route path="/" element={<Main />} />
+        <Route path="/" element={<SearchGame />} />
+        <Route path="/rating" element={<Rating />} />
         <Route
           path="/login"
-          element={isLoggedIn ? <Navigate to="/" /> : <Login /> }
+          element={loggedIn ? <Navigate to="/" /> : <Login /> }
         />
         <Route
           path="/register"
-          element={isLoggedIn ? <Navigate to="/" /> : <Register /> }
+          element={loggedIn ? <Navigate to="/" /> : <Register /> }
+        />
+        <Route
+          path="/profile/:username"
+          element={<Profile />}
         />
         <Route
           path="/match/:id"

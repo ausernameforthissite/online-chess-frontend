@@ -1,5 +1,5 @@
 import { BoardState } from "../BoardState";
-import { boardLength, ChessColor, IChessCoords, PieceViewStatus } from "../ChessCommon";
+import { boardLength, IChessCoords, PieceViewStatus } from "../ChessCommon";
 import { checkGoOrCapture, IChessPiece, isUnderAttack} from "../exports";
 import { BoardCellEntityEnum, IBoardCellEntity } from "../IBoardCellEntity";
 import { IPossibleMoveCell } from "../IPossibleMoveCell";
@@ -36,19 +36,19 @@ function checkCastling(currentPiece: IChessPiece, boardState: BoardState, startC
       const rookInitialLetterCoord = i < 0 ? 0 : boardLength - 1;
 
       if (boardState[startCoords.numberCoord][rookInitialLetterCoord] !== null &&
-          (<IBoardCellEntity>boardState[startCoords.numberCoord][rookInitialLetterCoord]).type === BoardCellEntityEnum.rook) {
+          (boardState[startCoords.numberCoord][rookInitialLetterCoord] as IBoardCellEntity).type === BoardCellEntityEnum.rook) {
 
-        const myRook = <IChessPiece>boardState[startCoords.numberCoord][rookInitialLetterCoord]
+        const myRook = boardState[startCoords.numberCoord][rookInitialLetterCoord] as IChessPiece;
 
         if (myRook.color === currentPiece.color && myRook.firstMove === true) {
 
           let j = startCoords.letterCoord;
 
 
-          while (j != rookInitialLetterCoord - i) {
+          while (j !== rookInitialLetterCoord - i) {
             j += i;
             if (boardState[startCoords.numberCoord][j] !== null &&
-              (<IBoardCellEntity>boardState[startCoords.numberCoord][j]).type != BoardCellEntityEnum.boardCell) {
+              (boardState[startCoords.numberCoord][j] as IBoardCellEntity).type !== BoardCellEntityEnum.boardCell) {
                 
               continue outerLoop;
             }
@@ -58,17 +58,17 @@ function checkCastling(currentPiece: IChessPiece, boardState: BoardState, startC
           j = startCoords.letterCoord - i;
           let endLetterCoord = startCoords.letterCoord + i * 2;
 
-          while (j != endLetterCoord) {
+          while (j !== endLetterCoord) {
             j += i;
             if (isUnderAttack(boardState, { numberCoord: startCoords.numberCoord, letterCoord: j}, currentPiece.color)) {
               continue outerLoop;
             }
           }
 
-          boardState[startCoords.numberCoord][endLetterCoord] = <IPossibleMoveCell>{
+          boardState[startCoords.numberCoord][endLetterCoord] = {
             type: BoardCellEntityEnum.boardCell,
             castling: i
-          };
+          } as IPossibleMoveCell;
         }
       }
     }
