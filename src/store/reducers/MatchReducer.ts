@@ -3,6 +3,7 @@ import { ChessColor } from '../../models/chess-game/ChessCommon'
 import { IChessMatchResult } from '../../models/chess-game/IChessMatchResult'
 import { chessMoveToString, IChessMove, IChessMoveFullData } from '../../models/chess-game/IChessMove'
 import { IMatch } from '../../models/chess-game/IMatch'
+import { IWebsocketErrorDTO } from '../../models/DTO/IWebsocketErrorDTO'
 import { IGetMatchStateDTO } from '../../models/DTO/match/IGetMatchStateDTO'
 import { IMakeChessMoveDTO } from '../../models/DTO/match/IMakeChessMoveDTO'
 import { ISelectChessPiece, ISelectChessPieceStart } from '../../models/DTO/match/ISelectChessPiece'
@@ -11,6 +12,7 @@ import { IViewCertainMoveDTO } from '../../models/DTO/match/IViewCertainMoveDTO'
 import { IChessMatchInfoResponse } from '../../models/DTO/match/websocket/chess-match/response/IChessMatchInfoResponse'
 import { IChessMatchUserDisconnectedResponse } from '../../models/DTO/match/websocket/chess-match/response/IChessMatchUserDisconnectedResponse'
 import { IFindMatchOkResponse } from '../../models/DTO/match/websocket/find-match/response/IFindMatchOkResponse'
+import { WebsocketErrorEnum } from '../../models/DTO/match/websocket/WebsocketErrorEnum'
 import { getMatchStateAndSubscribeToMatch } from '../../services/MatchService'
 import { LEFT_GAME_TIMEOUT_MS } from '../../utils/ChessGameConstants'
 import { deleteSelectionFromBoardState, updateBoardState} from '../../utils/ChessGameUtils'
@@ -29,16 +31,21 @@ export type MatchState = {
   myTurn: boolean
   matchStateError: string | null
 
-  searchWindowView: boolean
   searchStart: boolean
   searching: boolean
   searchError: string | null
+  searchErrorCode: WebsocketErrorEnum | null
   searchCanceling: boolean
   searchCancelError: string | null
+  searchConnectionAttemptsCount: number
 
   subscribing: boolean
   subscribed: boolean
   subscribeError: string | null
+  subscribeErrorCode: WebsocketErrorEnum | null
+  subscribeConnectionAttemptsCount: number
+
+  matchLoaded: boolean
 
   initialTimeLeftMS: number
   initialFirstMoveTimeLeftMS: number
@@ -86,16 +93,21 @@ const initialState: MatchState = {
   myTurn: false,
   matchStateError: null,
 
-  searchWindowView: false,
   searchStart: false,
   searching: false,
   searchError: null,
+  searchErrorCode: null,
   searchCanceling: false,
   searchCancelError: null,
+  searchConnectionAttemptsCount: 0,
 
   subscribing: false,
   subscribed: false,
   subscribeError: null,
+  subscribeErrorCode: null,
+  subscribeConnectionAttemptsCount: 0,
+
+  matchLoaded: false,
 
   initialTimeLeftMS: -1,
   initialFirstMoveTimeLeftMS: -1,
@@ -135,47 +147,73 @@ export const matchSlice = createSlice({
   initialState,
   reducers: {
     searchStart(state: MatchState) {
-      state.searchWindowView = true;
       state.searchStart = true;
       state.searchError = null;
       state.searchCancelError = null;
     },
     searchStartSuccess(state: MatchState) {
+      state.searchStart = false;
       state.searching = true;
     },
     searchSuccess(state: MatchState, action: PayloadAction<IFindMatchOkResponse>){
-      state.searchWindowView = false;
       state.searchStart = false;
       state.searching = false;
       state.searchCanceling = false;
       state.searchCancelError = null;
       state.matchId = action.payload.matchId;
+      state.activeMatch = true;
     },
     searchCancelStart(state: MatchState){
       state.searchCanceling = true;
-      state.searchCancelError = null;
     },
     searchCanceled(state: MatchState){
-      state.searchWindowView = false;
       state.searchCanceling = false;
       state.searchStart = false;
       state.searching = false;
+      state.searchCancelError = null;
+      state.searchConnectionAttemptsCount = 0;
     },
     searchCancelFailure(state: MatchState, action: PayloadAction<string>){
-      state.searchCancelError = action.payload
+      state.searchCancelError = action.payload;
     },
-    searchFailure(state: MatchState, action: PayloadAction<string>){
-      state.searchStart = false
-      state.searching = false
-      state.searchCanceling = false
-      state.searchError = action.payload
+    searchFailure(state: MatchState, action: PayloadAction<IWebsocketErrorDTO | undefined>){
+      state.searchStart = false;
+      state.searching = false;
+      state.searchCanceling = false;
+
+      if (action.payload) {
+        if (action.payload.code === WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_IN_MATCH) {
+          const splittedMessage: Array<string> = action.payload.message.split(" matchId=");
+
+          if (splittedMessage.length === 2) {
+            state.matchId = Number(splittedMessage[1]);
+            state.activeMatch = true;
+            state.searchError = splittedMessage[0];
+            state.searchErrorCode = WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_IN_MATCH;
+          } else {
+            state.searchError = "Некорректный ответ сервера.";
+            state.searchErrorCode = WebsocketErrorEnum.CLOSE_CONNECTION_GENERAL;
+          }
+        } else {
+          state.searchError = action.payload.message;
+          state.searchErrorCode = action.payload.code;
+        }
+        state.searchConnectionAttemptsCount = 0;
+      }
+    },
+    failCurrentFindMatchActions(state: MatchState){
+      state.searchCanceling = false;
+    },
+    searchClearError(state: MatchState){
+      state.searchError = null;
+      state.searchCancelError = null;
+    },
+    searchIncrementConnectionCount(state: MatchState){
+      state.searchConnectionAttemptsCount = state.searchConnectionAttemptsCount + 1;
     },
     searchAlreadyInMatch(state: MatchState, action: PayloadAction<number>){
-      state.matchId = action.payload
-      state.activeMatch = true
-    },
-    searchWindowViewFalse(state: MatchState) {
-      state.searchWindowView = false
+      state.matchId = action.payload;
+      state.activeMatch = true;
     },
     getMatchStateSuccess(state: MatchState, action: PayloadAction<IGetMatchStateDTO>){
       state.match = action.payload.match
@@ -223,20 +261,36 @@ export const matchSlice = createSlice({
     subscribingStart(state: MatchState){
       state.subscribing = true
       state.subscribed = false
+      state.subscribeError = null
+      state.subscribeErrorCode = null
     },
     subscribeSuccess(state: MatchState){
       state.subscribing = false
       state.subscribed = true
       state.subscribeError = null
+      state.subscribeErrorCode = null
     },
     subscribeFinished(state: MatchState){
-      state.subscribing = false
-      state.subscribed = false
+      state.subscribing = false;
+      state.subscribed = false;
+      state.subscribeError = null;
+      state.subscribeErrorCode = null;
+      state.subscribeConnectionAttemptsCount = 0;
     },
-    subscribeFailure(state: MatchState, action: PayloadAction<string>){
-      state.subscribing = false
-      state.subscribed = false
-      state.subscribeError = action.payload
+    subscribeFailure(state: MatchState, action: PayloadAction<IWebsocketErrorDTO | undefined>){
+      state.subscribing = false;
+      state.subscribed = false;
+
+      if (action.payload) {
+        state.subscribeError = action.payload.message;
+        state.subscribeErrorCode = action.payload.code;
+      }
+    },
+    subscribeIncrementConnectionCount(state: MatchState){
+      state.subscribeConnectionAttemptsCount = state.subscribeConnectionAttemptsCount + 1;
+    },
+    loadMatchSuccess(state: MatchState) {
+      state.matchLoaded = true;
     },
     updateUsersInfo(state: MatchState, action: PayloadAction<IChessMatchInfoResponse>){
       if (state.lastMoveNumber !== action.payload.lastMoveNumber) {
@@ -247,6 +301,8 @@ export const matchSlice = createSlice({
           throw new Error("There is no match id!");
         }
       }
+
+      state.matchLoaded = true;
 
       state.initialTimeLeftMS = action.payload.initialTimeLeftMS;
       state.initialFirstMoveTimeLeftMS = action.payload.initialFirstMoveTimeLeftMS;
@@ -350,13 +406,14 @@ export const matchSlice = createSlice({
         state.matchRecord.push(action.payload.chessMove);
         state.matchRecordString.push(chessMoveToString(action.payload.chessMove));
 
+        state.subscribeConnectionAttemptsCount = 0;
         state.sendingChessMove = false
         state.newMoveStart = null
       } else {
         throw new Error("Match or match state is not found found")
       }
     },
-    selectChessPiece(state: MatchState, action: PayloadAction<ISelectChessPiece>) {
+    selectChessPiece(state: MatchState, action: PayloadAction<ISelectChessPiece>){
       if (state.match) {
         updateBoardState(state.match.boardState, action.payload.boardState);
         state.pieceSelected = true;
@@ -365,7 +422,7 @@ export const matchSlice = createSlice({
         throw new Error("Match is not found")
       }
     },
-    clearBoardState(state: MatchState) {
+    clearBoardState(state: MatchState){
       if (state.match) {
         deleteSelectionFromBoardState(state.match.boardState)
         state.pieceSelected = false;
@@ -452,6 +509,13 @@ export const matchSlice = createSlice({
         throw new Error("Match is not found")
       }
     },
+    failCurrentChessGameActions(state: MatchState){
+      state.sendingChessMove = false;
+      state.surrendering = false
+    },
+    clearMatchState(state: MatchState){
+      return initialState;
+    }
   }
 })
 

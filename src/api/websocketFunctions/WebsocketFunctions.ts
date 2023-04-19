@@ -53,3 +53,7 @@ export const sendMessageToWebsocket = (websocketConnectionType: WebsocketConnect
 
   client.send(getWebsocetSendEndpoint(websocketConnectionType), {}, JSON.stringify(message));
 }
+
+export async function deactivateWebsocketClient(websocketConnectionType: WebsocketConnectionEnum) {
+    WebsocketClientsHolder.deactivate(websocketConnectionType);
+}

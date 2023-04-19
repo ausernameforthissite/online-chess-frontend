@@ -5,14 +5,14 @@ import { IAccessTokenInfo } from '../../models/IAccessTokenInfo'
 
 
 
-type AuthState = {
+export type AuthState = {
   accessToken: string | null
   accessTokenExpirationTime: number | null
   registered: boolean
   loggedIn: boolean
   loading: boolean
   username: string | null
-  error:  string | null
+  loginRegisterError:  string | null
 }
 
 const initialState: AuthState = {
@@ -22,7 +22,7 @@ const initialState: AuthState = {
   loggedIn: false,
   loading: false,
   username: null,
-  error:  null
+  loginRegisterError:  null
 }
 
 export const authSlice = createSlice({
@@ -31,7 +31,7 @@ export const authSlice = createSlice({
   reducers: {
     registerStart(state: AuthState) {
       state.loading = true
-      state.error = null
+      state.loginRegisterError = null
     },
     registerSuccess(state: AuthState){
       state.loading = false
@@ -39,11 +39,11 @@ export const authSlice = createSlice({
     },
     registerFailure(state: AuthState, action: PayloadAction<string>){
       state.loading = false
-      state.error = action.payload
+      state.loginRegisterError = action.payload
     },
     loginStart(state: AuthState) {
       state.loading = true
-      state.error = null
+      state.loginRegisterError = null
     },
     loginSuccess(state: AuthState, action: PayloadAction<IAuthResponse>){
       state.loading = false
@@ -54,9 +54,14 @@ export const authSlice = createSlice({
       state.accessTokenExpirationTime = tokenInfo.exp
       state.username = tokenInfo.username
     },
-    loginFailure(state: AuthState, action: PayloadAction<string>){
+    loginFailure(state: AuthState, action: PayloadAction<string | undefined>){
       state.loading = false
-      state.error = action.payload
+      if (action.payload) {
+        state.loginRegisterError = action.payload
+      }
+    },
+    clearLoginRegisterError(state: AuthState) {
+      state.loginRegisterError = null;
     },
     logoutResult() {
 

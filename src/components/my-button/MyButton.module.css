@@ -1,0 +1,21 @@
+.myButton{
+  background-color: rgb(242, 232, 231);
+  width: 140px;
+  height: fit-content;
+  font-size: inherit;
+  box-shadow: inset 0px 0px 4px 2px rgba(0, 0, 0, 0.6);
+  border: none;
+  margin: 10px 0;
+  padding: 5px 0;
+}
+
+
+.myButton:hover {
+  background-color: rgb(100, 90, 200);
+  color: rgba(230, 230, 230);
+  cursor: pointer;
+}
+
+.myButton:active {
+  box-shadow: inset -2px -2px 3px rgba(255, 255, 255, 0.6), inset 2px 2px 3px rgba(0, 0, 0, 0.6);
+}

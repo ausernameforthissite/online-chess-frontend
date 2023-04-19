@@ -1,8 +1,11 @@
+@import '../../variables.css';
+
 .myModal {
   display: flex;
   justify-content: center;
   align-items: center;
   position: fixed;
+  z-index: 20;
   top: 0;
   bottom: 0;
   right: 0;
@@ -11,8 +14,13 @@
 }
 
 .myModalContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  align-items: center;
   padding: 25px;
-  background: white;
+  background: var(--color-very-light-gray);
+  color: var(--color-dark-text);
   border-radius: 16px;
   min-width: 250px;
 }

@@ -1,9 +1,9 @@
 import _ from "lodash";
 import { CompatClient, IMessage, StompHeaders } from "@stomp/stompjs";
-import { getMatchStateAxios, getUsersRatingsDataAxios} from "../api/axiosFunctions/MatchAxiosFunctions";
+import { getMatchStateAxios, getUserInMatchStatusAxios, getUsersRatingsDataAxios} from "../api/axiosFunctions/MatchAxiosFunctions";
 import Endpoints from "../api/Endpoints";
 import { WebsocketClientsHolder } from "../api/WebsocketClientsHolder";
-import { connectToWebsocket, sendMessageToWebsocket, WebsocketConnectionEnum } from "../api/websocketFunctions/WebsocketFunctions";
+import { connectToWebsocket, deactivateWebsocketClient, sendMessageToWebsocket, WebsocketConnectionEnum } from "../api/websocketFunctions/WebsocketFunctions";
 import { BoardState } from "../models/chess-game/BoardState";
 import { ChessColor, getUserColorByMoveNumber, IChessCoords } from "../models/chess-game/ChessCommon";
 import { chessMoveToString, IChessMove, IChessMoveFullData } from "../models/chess-game/IChessMove";
@@ -37,18 +37,35 @@ import { IChessMatchWebsocketRequest } from "../models/DTO/match/websocket/chess
 import { chessMatchRejectDrawRequest } from "../models/DTO/match/websocket/chess-match/request/IChessMatchRejectDrawRequest";
 import { IChessMatchDrawResponse } from "../models/DTO/match/websocket/chess-match/response/IChessMatchDrawResponse";
 import { chessMatchInfoRequest } from "../models/DTO/match/websocket/chess-match/request/IChessMatchInfoRequest";
+import { IUserInMatchStatusResponse, UserInMatchStatusResponseEnum } from "../models/DTO/match/IUserInMatchStatusResponse";
+import { IUserInMatchStatusTrueResponse } from "../models/DTO/match/IUserInMatchStatusTrueResponse";
+import { WebsocketErrorEnum } from "../models/DTO/match/websocket/WebsocketErrorEnum";
+import { IWebsocketErrorDTO } from "../models/DTO/IWebsocketErrorDTO";
 
 
+
+let chessMatchSubscribeTimeout: ReturnType<typeof setTimeout> | null;
+
+
+export async function getUserInMatchStatus(): Promise<void> {
+  try {
+
+    const res = await getUserInMatchStatusAxios();
+    const userInMatchStatus: IUserInMatchStatusResponse = res.data;
+    console.log(userInMatchStatus.type)
+    if (userInMatchStatus.type === UserInMatchStatusResponseEnum.TRUE) {
+      store.dispatch(matchSlice.actions.searchAlreadyInMatch((userInMatchStatus as IUserInMatchStatusTrueResponse).matchId));
+    } else if (userInMatchStatus.type !== UserInMatchStatusResponseEnum.FALSE) {
+      throw new Error("Incorrect UserInMatchStatusResponse type");
+    }
+  } catch (e: any) {
+    throw new Error(e.message);
+  }
+}
 
 export function findMatch() : void {
   store.dispatch(matchSlice.actions.searchStart())
-  const state: RootState = store.getState();
-
-  if (state.matchData.activeMatch && state.matchData.myMatch) {
-    store.dispatch(matchSlice.actions.searchFailure("You are already in match with id = " + state.matchData.matchId))
-  } else {
-    connectToWebsocket(WebsocketConnectionEnum.FIND_MATCH, onConnectedToFindMatch, onFindMatchWebsocketClose, onFindMatchError, findMatchBeforeConnect);
-  }
+  connectToWebsocket(WebsocketConnectionEnum.FIND_MATCH, onConnectedToFindMatch, onFindMatchWebsocketClose, onFindMatchError, findMatchBeforeConnect);
 }
 
 function onConnectedToFindMatch(): void  {
@@ -58,34 +75,43 @@ function onConnectedToFindMatch(): void  {
 }
 
 function onFindMatchWebsocketClose(evt: CloseEvent): void {
-  if (![1002, 1006, 1010, 1011, 1012, 1013, 1014, 1015].includes(evt.code)) {
-    const client: CompatClient = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.FIND_MATCH);
-    client.deactivate();
-    const state: RootState = store.getState();
+  console.log(evt.code);
+  const matchData: MatchState = store.getState().matchData;
+  if (![1000, 1001, 1002, 1006, 1010, 1011, 1012, 1013, 1014, 1015].includes(evt.code)) {
+    deactivateWebsocketClient(WebsocketConnectionEnum.FIND_MATCH);
 
-    if (state.matchData.searchStart || state.matchData.searching) {
-      store.dispatch(matchSlice.actions.searchFailure("Connection closed by server"));
+    if (matchData.searchStart || matchData.searching) {
+      console.error("Connection closed by the server.");
+      store.dispatch(matchSlice.actions.searchFailure());
     }
+  }
+
+  if (matchData.searchConnectionAttemptsCount > 3) {
+    deactivateWebsocketClient(WebsocketConnectionEnum.FIND_MATCH);
+    store.dispatch(matchSlice.actions.searchFailure({message: "Проблемы с подключением к серверу.", code: WebsocketErrorEnum.CLOSE_CONNECTION_GENERAL} as IWebsocketErrorDTO));
   }
 }
 
 function onFindMatchError(message: IMessage): void  {
   const headers: StompHeaders = message.headers;
-  const customError: string = headers["Close-Connection"];
+  const errorCode: WebsocketErrorEnum = headers["ErrorCode"] as unknown as WebsocketErrorEnum;
 
-  if (customError === "true") {
-    const client: CompatClient = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.FIND_MATCH);
-    client.deactivate();
-    store.dispatch(matchSlice.actions.searchFailure(message.body));
 
-    const splittedMessage: Array<string> = message.body.split("id=");
+  if (errorCode) {
+    switch(errorCode) {
+      case WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_IN_MATCH:
 
-    if (splittedMessage.length === 2) {
-      store.dispatch(matchSlice.actions.searchAlreadyInMatch(Number(splittedMessage[1])));
+      case WebsocketErrorEnum.CLOSE_CONNECTION_GENERAL:
+        deactivateWebsocketClient(WebsocketConnectionEnum.FIND_MATCH);
+        store.dispatch(matchSlice.actions.searchFailure({message: message.body, code: errorCode} as IWebsocketErrorDTO));
+        console.error("Error code: " + errorCode + ". Error message: " + message.body);
+        return;
     }
+    console.error("Error code: " + errorCode + ". Error message: " + message.body);
+  } else {
+    console.error(message.body);
   }
 
-  console.error(message.body);
 }
 
 async function findMatchBeforeConnect(): Promise<void> {
@@ -95,9 +121,11 @@ async function findMatchBeforeConnect(): Promise<void> {
 
   if (accessToken) {
     clientConnectHeaders["X-Authorization"] = "Bearer " + accessToken;
+    store.dispatch(matchSlice.actions.searchIncrementConnectionCount());
   } else {
     client.deactivate();
-    store.dispatch(matchSlice.actions.searchFailure("You are not logged in!"))
+    store.dispatch(matchSlice.actions.searchFailure());
+    console.error("You are not logged in!");
   }
 }
 
@@ -107,30 +135,30 @@ function onFindMatchMessageReceived(message: IMessage): void {
   
   switch(response.type) {
     case FindMatchWebsocketResponseEnum.OK:
-      client = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.FIND_MATCH);
-      client.deactivate();
+      deactivateWebsocketClient(WebsocketConnectionEnum.FIND_MATCH);
       const okResp: IFindMatchOkResponse = (response as IFindMatchOkResponse);
       store.dispatch(matchSlice.actions.searchSuccess(okResp));
       myHistory.push(`/match/${okResp.matchId}`)
-      break;
-    case FindMatchWebsocketResponseEnum.BAD:
-      client = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.FIND_MATCH);
-      client.deactivate();
-      store.dispatch(matchSlice.actions.searchFailure((response as IFindMatchBadResponse).message));
-      break;
+      return;
+    case FindMatchWebsocketResponseEnum.FIND_MATCH_BAD:
+      deactivateWebsocketClient(WebsocketConnectionEnum.FIND_MATCH);
+      store.dispatch(matchSlice.actions.searchFailure({message: (response as IFindMatchBadResponse).message, code: WebsocketErrorEnum.CLOSE_CONNECTION_GENERAL} as IWebsocketErrorDTO));
+      return;
     case FindMatchWebsocketResponseEnum.CANCELED:
-      client = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.FIND_MATCH);
-      client.deactivate();
+      deactivateWebsocketClient(WebsocketConnectionEnum.FIND_MATCH);
       store.dispatch(matchSlice.actions.searchCanceled());
-      break;
-    case FindMatchWebsocketResponseEnum.CANCEL_FAILED:
+      return;
+    case FindMatchWebsocketResponseEnum.CANCEL_BAD:
       store.dispatch(matchSlice.actions.searchCancelFailure((response as IFindMatchCancelBadResponse).message));
+      return;
+    case FindMatchWebsocketResponseEnum.GENERAL_BAD:
+      console.error((response as IFindMatchBadResponse).message);
       break;
     default:
-      console.log("Response of unknown type:  ");
-      console.log(response)
-      break;
-  }
+      console.error("Response of unknown type:  ");
+      console.error(response);
+    }
+    store.dispatch(matchSlice.actions.failCurrentFindMatchActions());
 }
 
 export function cancelFindMatch(): void {
@@ -152,8 +180,8 @@ export function cancelFindMatch(): void {
 
 export async function getMatchState(matchId: number): Promise<void> {
   try {
-    const res = await getMatchStateAxios(matchId)
-    const match = mapToMatch(res.data)
+    const res = await getMatchStateAxios(matchId);
+    const match = mapToMatch(res.data);
     const activeMatch: boolean = !res.data.finished;
     const matchRecord = res.data.matchRecord; 
     const matchRecordString: Array<string> = [];
@@ -201,6 +229,9 @@ export async function getMatchState(matchId: number): Promise<void> {
       matchId: matchId
     } as IGetMatchStateDTO));
 
+    if (!activeMatch) {
+      store.dispatch(matchSlice.actions.loadMatchSuccess())
+    }
   } catch (e: any) {
     console.error(e)
     store.dispatch(matchSlice.actions.getMatchStateFailure(e.message))
@@ -235,43 +266,90 @@ export function subscribeToChessMatch(): void {
     connectToWebsocket(WebsocketConnectionEnum.CHESS_MATCH, onConnectedToChessMatch, onChessMatchWebsocketClose, onChessMatchError, chessMatchBeforeConnect, state.matchData.matchId);
   } else {
     const errorMessage: string = "Can't subscribe to match - there is no matchId in the store";
-    store.dispatch(matchSlice.actions.subscribeFailure(errorMessage));
+    store.dispatch(matchSlice.actions.subscribeFailure());
     throw new Error(errorMessage);
   }
 }
 
+function doSetTimeout(): void {
+  doClearTimeout();
+
+  chessMatchSubscribeTimeout = setTimeout(() => {
+    const matchData: MatchState = store.getState().matchData;
+
+    if (matchData.subscribeConnectionAttemptsCount <= 4) {
+      if (!matchData.subscribing && !matchData.subscribed) {
+        subscribeToChessMatch();
+      } else {
+        store.dispatch(matchSlice.actions.subscribeIncrementConnectionCount());
+        doSetTimeout();
+        sendMessageToWebsocket(WebsocketConnectionEnum.CHESS_MATCH, chessMatchInfoRequest);
+      }
+    } else {
+      deactivateWebsocketClient(WebsocketConnectionEnum.CHESS_MATCH);
+    }
+  }, 2000);
+}
+
+ function doClearTimeout(): void {
+  if (chessMatchSubscribeTimeout !== null) {
+    clearTimeout(chessMatchSubscribeTimeout);
+    chessMatchSubscribeTimeout = null;
+  }
+ }
+
 function onConnectedToChessMatch(): void  {
   const client: CompatClient = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.CHESS_MATCH);
   client.subscribe(Endpoints.RESOURCES.CHESS_MATCH_SUBSCRIBE, onChessMatchMessageReceived);
+  doSetTimeout();
   store.dispatch(matchSlice.actions.subscribeSuccess());
   sendMessageToWebsocket(WebsocketConnectionEnum.CHESS_MATCH, chessMatchInfoRequest);
 };
 
 function onChessMatchWebsocketClose(evt: CloseEvent): void {
   console.log("Close event code: " + evt.code);
-  if (![1000, 1002, 1006, 1010, 1011, 1012, 1013, 1014, 1015].includes(evt.code)) {
-    const client: CompatClient = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.CHESS_MATCH);
-    client.deactivate();
-    store.dispatch(matchSlice.actions.subscribeFailure("Connection closed by server"));
+  if (![1000, 1001, 1002, 1006, 1010, 1011, 1012, 1013, 1014, 1015].includes(evt.code)) {
+    deactivateWebsocketClient(WebsocketConnectionEnum.CHESS_MATCH);
+
+    console.error("Connection closed by the server.");
+  }
+
+  const matchData: MatchState = store.getState().matchData;
+
+  if (matchData.subscribeConnectionAttemptsCount > 4) {
+    deactivateWebsocketClient(WebsocketConnectionEnum.CHESS_MATCH);
+    store.dispatch(matchSlice.actions.subscribeFailure({message: "Проблемы с подключением к серверу.", code: WebsocketErrorEnum.CLOSE_CONNECTION_GENERAL} as IWebsocketErrorDTO));
+  } else if (matchData.subscribing || matchData.subscribed) {
+    store.dispatch(matchSlice.actions.subscribeFailure());
   }
 };
 
 function onChessMatchError(message: IMessage): void  {
   const headers: StompHeaders = message.headers;
-  const customError: string = headers["Close-Connection"];
+  const errorCode: WebsocketErrorEnum = headers["ErrorCode"] as unknown as WebsocketErrorEnum;
 
-  if (customError === "true") {
-    const client: CompatClient = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.CHESS_MATCH);
-    client.deactivate();
-    store.dispatch(matchSlice.actions.subscribeFailure(message.body));
+  if (errorCode) {
+    switch(errorCode) {
+      case WebsocketErrorEnum.CLOSE_CONNECTION_GENERAL:
+      case WebsocketErrorEnum.CLOSE_CONNECTION_NO_ACTIVE_MATCH:
+      case WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_SUBSCRIBED:
+        doClearTimeout();
+        deactivateWebsocketClient(WebsocketConnectionEnum.CHESS_MATCH);
+        store.dispatch(matchSlice.actions.subscribeFailure({message: message.body, code: errorCode} as IWebsocketErrorDTO));
+        console.error("Error code: " + errorCode + ". Error message: " + message.body);
+        return;
+    }
+    console.error("Error code: " + errorCode + ". Error message: " + message.body);
+  } else {
+    console.error(message.body);
   }
-
-  console.error(message.body);
 };
 
 async function chessMatchBeforeConnect(): Promise<void> {
   const client: CompatClient = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.CHESS_MATCH);
   const clientConnectHeaders: StompHeaders = client.connectHeaders;
+
+  store.dispatch(matchSlice.actions.subscribeIncrementConnectionCount());
 
   const state: RootState = store.getState();
 
@@ -284,57 +362,71 @@ async function chessMatchBeforeConnect(): Promise<void> {
   }
 }
 
+
+
 function onChessMatchMessageReceived(message: IMessage): void {
-  const response: IChessMatchWebsocketResponse = JSON.parse(message.body)
-  let client: CompatClient;
-  
+  const response: IChessMatchWebsocketResponse = JSON.parse(message.body);
+  let matchData: MatchState;
+
   switch(response.type) {
     case ChessMatchWebsocketResponseEnum.INFO:
+      doClearTimeout();
       store.dispatch(matchSlice.actions.updateUsersInfo(response as IChessMatchInfoResponse));
-      break;
+      return;
+    case ChessMatchWebsocketResponseEnum.SUBSCRIBED:
+      store.dispatch(matchSlice.actions.updateOnUserSubscribed((response as IChessMatchUserSubscribedResponse).subscribedUserColor));
+      return;
+    case ChessMatchWebsocketResponseEnum.DISCONNECTED:
+      store.dispatch(matchSlice.actions.updateOnUserDisconnected(response as IChessMatchUserDisconnectedResponse));
+      return;
     case ChessMatchWebsocketResponseEnum.CHESS_MOVE:
       makeChessMove((response as IChessMatchMoveOkResponse).chessMove);
-      break;
+      return;
     case ChessMatchWebsocketResponseEnum.CHESS_MOVE_BAD:
       console.error((response as IChessMatchBadResponse).message);
       store.dispatch(matchSlice.actions.sendChessMoveFailure());
-      break;
+      return;
     case ChessMatchWebsocketResponseEnum.DRAW:
       store.dispatch(matchSlice.actions.receiveDrawOffer((response as IChessMatchDrawResponse).drawOfferUserColor));
-      break;
+      return;
     case ChessMatchWebsocketResponseEnum.DRAW_BAD:
       console.error((response as IChessMatchBadResponse).message);
       store.dispatch(matchSlice.actions.offerDrawFailure());
-      break;
+      return;
     case ChessMatchWebsocketResponseEnum.REJECT_DRAW:
       store.dispatch(matchSlice.actions.offerDrawRejected());
-      break;
+      return;
     case ChessMatchWebsocketResponseEnum.REJECT_DRAW_BAD:
     case ChessMatchWebsocketResponseEnum.ACCEPT_DRAW_BAD:
       console.error((response as IChessMatchBadResponse).message);
       store.dispatch(matchSlice.actions.handleIncomingDrawOfferFinish());
-      break;
+      return;
     case ChessMatchWebsocketResponseEnum.SURRENDER_BAD:
       console.error((response as IChessMatchBadResponse).message);
       store.dispatch(matchSlice.actions.surrenderFailure());
-      break;
-    case ChessMatchWebsocketResponseEnum.SUBSCRIBED:
-      store.dispatch(matchSlice.actions.updateOnUserSubscribed((response as IChessMatchUserSubscribedResponse).subscribedUserColor));
-      break;
-    case ChessMatchWebsocketResponseEnum.DISCONNECTED:
-      store.dispatch(matchSlice.actions.updateOnUserDisconnected(response as IChessMatchUserDisconnectedResponse));
-      break;
+      return;
     case ChessMatchWebsocketResponseEnum.MATCH_RESULT:
-      client = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.CHESS_MATCH);
-      client.deactivate()
+      deactivateWebsocketClient(WebsocketConnectionEnum.CHESS_MATCH);
       store.dispatch(matchSlice.actions.finishChessMatch((response as IChessMatchResultResponse).matchResult));
-      store.dispatch(matchSlice.actions.clearBoardState());
-      getUsersRatingsData(store.getState().matchData.matchId);
+      matchData = store.getState().matchData;
+      if (matchData.viewedMoveNumber === matchData.lastMoveNumber) {
+        store.dispatch(matchSlice.actions.clearBoardState());
+      }
+      getUsersRatingsData(matchData.matchId);
+      return;
+    case ChessMatchWebsocketResponseEnum.GENERAL_BAD:
+      console.error((response as IChessMatchBadResponse).message);
       break;
     default:
-      console.log("Response of unknown type:  ");
-      console.log(response)
+      console.error("Response of unknown type:  ");
+      console.error(response);
   }
+
+  matchData = store.getState().matchData;
+  if (matchData.viewedMoveNumber === matchData.lastMoveNumber) {
+    store.dispatch(matchSlice.actions.clearBoardState());
+  }
+  store.dispatch(matchSlice.actions.failCurrentChessGameActions());
 }
 
 
@@ -344,9 +436,10 @@ export function sendChessMove(chessMoveEnd: ISelectChessPieceEnd) : void {
     const matchId: number = state.matchData.matchId;
     const newMoveStart: ISelectChessPieceStart | null = state.matchData.newMoveStart;
     const subscribed: boolean = state.matchData.subscribed;
+    const sendingMoveNumber: number = state.matchData.lastMoveNumber + 1;
 
     if (matchId >= 0 && newMoveStart && subscribed) {
-      const chessMoveToSend: IChessMove = { startPiece: newMoveStart.startPiece, startCoords: newMoveStart.startCoords,
+      const chessMoveToSend: IChessMove = { moveNumber: sendingMoveNumber, startPiece: newMoveStart.startPiece, startCoords: newMoveStart.startCoords,
                                             endPiece: chessMoveEnd.endPiece, endCoords: chessMoveEnd.endCoords,
                                             castling: chessMoveEnd.castling, pawnPromotionPiece: chessMoveEnd.pawnPromotionPiece};
       if (!store.getState().matchData.sendingChessMove) {
@@ -476,4 +569,9 @@ export function handleDrawOffer(accept: boolean) : void {
       console.error(e)
       store.dispatch(matchSlice.actions.handleIncomingDrawOfferFailure());
   }
+}
+
+export function closeConnectionAndClearMatchState() {
+  deactivateWebsocketClient(WebsocketConnectionEnum.CHESS_MATCH);
+  store.dispatch(matchSlice.actions.clearMatchState());
 }

@@ -5,7 +5,8 @@ export interface IFindMatchWebsocketResponse {
 
 export enum FindMatchWebsocketResponseEnum {
   OK = "OK",
-  BAD = "BAD",
   CANCELED = "CANCELED",
-  CANCEL_FAILED = "CANCEL_FAILED"
+  GENERAL_BAD = "GENERAL_BAD",
+  FIND_MATCH_BAD = "FIND_MATCH_BAD",
+  CANCEL_BAD = "CANCEL_BAD"
 }

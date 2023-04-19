@@ -5,7 +5,7 @@ export enum BoardCellEntityEnum {
   knight = "knight",
   pawn = "pawn",
   queen = "queen",
-  rook = "rook"
+  rook = "rook",
 }
 
 

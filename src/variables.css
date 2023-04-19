@@ -1,0 +1,8 @@
+:root {
+  --navbar-height: 50px;
+  
+  --color-light-text: rgb(230, 230, 230);
+  --color-dark-text: rgb(30, 30, 30);
+  --color-very-light-gray: rgb(210, 202, 199); 
+  --color-dark-background: rgb(45, 68, 82);
+}

@@ -10,6 +10,7 @@ export enum ChessMoveResult {
 
 
 export interface IChessMove extends IWebsocketSendMessage {
+  moveNumber: number
   startPiece: BoardCellEntityEnum
   startCoords: IChessCoords
   endPiece: BoardCellEntityEnum | null
@@ -19,7 +20,6 @@ export interface IChessMove extends IWebsocketSendMessage {
 }
 
 export interface IChessMoveFullData extends IChessMove, SubscribeResponse {
-  moveNumber: number
   result?: ChessMoveResult
   startPieceFirstMove: boolean
   endPieceFirstMove: boolean
@@ -29,23 +29,23 @@ export interface IChessMoveFullData extends IChessMove, SubscribeResponse {
   blackTimeLeftMS: number
 }
 
-export function chessMoveToChessMoveFullData(chessMove: IChessMove, moveNumber: number, startPieceFirstMove: boolean,
+export function chessMoveToChessMoveFullData(chessMove: IChessMove, startPieceFirstMove: boolean,
                                              endPieceFirstMove: boolean, previousEnPassantCoords: IChessCoords | null,
                                              whiteTimeLeftMS: number, blackTimeLeftMS: number, result?: ChessMoveResult): IChessMoveFullData  {
     console.log(previousEnPassantCoords)
-   return {startPiece: chessMove.startPiece,
-          startCoords: chessMove.startCoords,
-          endPiece: chessMove.endPiece,
-          endCoords: chessMove.endCoords,
-          castling: chessMove.castling,
-          pawnPromotionPiece: chessMove.pawnPromotionPiece,
-          moveNumber: moveNumber,
-          result: result,
-          startPieceFirstMove: startPieceFirstMove,
-          endPieceFirstMove: endPieceFirstMove,
-          previousEnPassantCoords: previousEnPassantCoords,
-          whiteTimeLeftMS: whiteTimeLeftMS,
-          blackTimeLeftMS: blackTimeLeftMS
+   return { moveNumber: chessMove.moveNumber,
+            startPiece: chessMove.startPiece,
+            startCoords: chessMove.startCoords,
+            endPiece: chessMove.endPiece,
+            endCoords: chessMove.endCoords,
+            castling: chessMove.castling,
+            pawnPromotionPiece: chessMove.pawnPromotionPiece,
+            result: result,
+            startPieceFirstMove: startPieceFirstMove,
+            endPieceFirstMove: endPieceFirstMove,
+            previousEnPassantCoords: previousEnPassantCoords,
+            whiteTimeLeftMS: whiteTimeLeftMS,
+            blackTimeLeftMS: blackTimeLeftMS
    } as IChessMoveFullData;
 }
 

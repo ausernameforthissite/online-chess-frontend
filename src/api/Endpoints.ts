@@ -11,6 +11,7 @@ const Endpoints = {
   },
 
   RESOURCES: {
+    USER_IN_MATCH_STATUS: 'http://localhost:8081/api/user',
     FIND_MATCH_BASE: 'http://localhost:8081/api/match/',
     FIND_MATCH: 'http://localhost:8081/ws',
     FIND_MATCH_SUBSCRIBE: '/user/queue/find_match/response',

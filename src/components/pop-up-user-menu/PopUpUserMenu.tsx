@@ -2,13 +2,13 @@ import { FC, Fragment } from "react";
 import { useAppSelector } from "../../hooks/ReduxHooks";
 import { logoutUser } from "../../services/AuthService";
 import { myHistory } from "../../utils/History";
-import styles from './UserActionsModalWindow.module.css';
+import styles from './PopUpUserMenu.module.css';
 
 type Props = {
   showWindow: (show: boolean) => void
 }
 
-const UserActionsModalWindow: FC<Props> = ({showWindow}: Props) => {
+const PopUpUserMenu: FC<Props> = ({showWindow}: Props) => {
 
   const authData = useAppSelector(state => state.authData)
 
@@ -65,4 +65,4 @@ const UserActionsModalWindow: FC<Props> = ({showWindow}: Props) => {
 };
 
 
-export default UserActionsModalWindow;
+export default PopUpUserMenu;

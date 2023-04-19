@@ -1,16 +1,16 @@
 import React, { FC } from "react"
 import Sidebar from "../../components/sidebar/Sidebar";
-import styles from './Rating.module.css';
+import stylesCommon from '../PageWithSidebar.module.css';
 
 
 
 const Rating: FC = () => {
 
   return (
-    <div className={styles.ratingPage}>
+    <div className={stylesCommon.pageWithSidebar}>
       <Sidebar/>
       
-      <div className={styles.ratingPageContent}>
+      <div className={stylesCommon.pageWithSidebarContent}>
         <h1>Rating</h1>
       </div>
      

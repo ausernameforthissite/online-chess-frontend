@@ -1,0 +1,107 @@
+.authPage {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	min-height: 680px;
+	margin: 50px 0;
+}
+
+
+.authContainer {
+	border-style: solid;
+  border-width: 5px;
+	border-color: rgb(151, 164, 170);
+	border-radius: 50px;
+	padding: 60px 65px;
+}
+
+.form {
+	width: 300px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.header {
+  font-size: 23px;
+  text-align: center;
+	padding-bottom: 30px;
+}
+
+.inputContainer {
+	position: relative;
+	margin-top: 20px;
+}
+
+.inputContainer label {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	font-size: 16px;
+  pointer-events: none;
+	transition: all 0.3s ease-in-out;
+}
+
+.inputContainer input { 
+  border: 0;
+  border-bottom: 1px solid rgb(88, 120, 135);  
+  background: transparent;
+  width: 100%;
+  padding: 8px 0 5px 0;
+  font-size: 16px;
+}
+
+.inputContainer input:focus { 
+ border: none;	
+ outline: none;
+ border-bottom: 1px solid rgb(151, 164, 170);
+}
+
+.myButton {
+	background-color: rgb(30, 200, 100);
+	width: fit-content;
+  border: none;
+	padding: 10px 20px;
+	margin-top: 20px;
+	border-radius: 2px;
+	cursor: pointer;
+	font-weight: 700;
+	text-shadow: green 0 0 3px;
+}
+
+.myButton:active {
+	background-color: rgb(88, 120, 135);
+}
+
+.inputContainer input:focus ~ label,
+.inputContainer input:valid ~ label {
+	top:-12px;
+	font-size:12px;
+}
+
+.errorsContainer {
+	min-height: 28px;
+	margin-top: 8px;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	width: 100%;
+}
+
+.error {
+	color: rgb(240, 45, 90);
+	text-align: justify;
+	font-size: 16px;
+	padding-bottom: 4px;
+	white-space: pre-line;
+}
+
+.goToAnotherAuthPageText {
+	padding-top: 35px;
+	font-size: 16px;
+}
+
+.link:hover {
+	color: rgb(194, 184, 183);
+}

@@ -2,15 +2,15 @@ import React, { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Navbar from "./components/navbar/Navbar";
 import { useAppSelector } from "./hooks/ReduxHooks";
-import Login from "./pages/login/Login";
 import SearchGame from "./pages/search-game/SearchGame";
 import Match from "./pages/match/Match";
 import Profile from "./pages/profile/Profile";
 import Rating from "./pages/rating/Rating";
-import Register from "./pages/register/Register";
+import Register from "./pages/auth/register/Register";
 import { getAccessToken } from "./services/AuthService";
 import { myHistory } from "./utils/History";
 import { HistoryRouter } from "./utils/HistoryRouter";
+import Login from "./pages/auth/login/Login";
 
 
 
@@ -49,9 +49,8 @@ function App() {
           path="/match/:id"
           element={<Match />}
         />
-      </Routes>
+      </Routes> 
     </HistoryRouter>
-
   );
 }
 

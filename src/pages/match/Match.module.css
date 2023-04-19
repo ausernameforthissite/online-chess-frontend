@@ -5,3 +5,11 @@
   justify-content: space-evenly;
   min-width: 1300px;
 }
+
+
+.buttonsGrid {
+  width: fit-content;
+  display: grid;
+  grid-auto-flow: column;
+  grid-column-gap: 20px;
+}

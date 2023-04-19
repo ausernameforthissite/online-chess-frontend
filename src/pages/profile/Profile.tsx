@@ -1,15 +1,20 @@
 import React, { FC } from "react"
-import styles from './Profile.module.css';
+import Sidebar from "../../components/sidebar/Sidebar";
+import stylesCommon from '../PageWithSidebar.module.css';
 
 
 
 const Profile: FC = () => {
 
   return (
-      <div>
+    <div className={stylesCommon.pageWithSidebar}>
+      <Sidebar/>
+      
+      <div className={stylesCommon.pageWithSidebarContent}>
         <h1>Profile</h1>
-     
       </div>
+     
+    </div>
   )
 }
 
