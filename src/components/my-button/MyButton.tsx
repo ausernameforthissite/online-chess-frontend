@@ -4,7 +4,7 @@ import styles from './MyButton.module.css';
 
 type Props = {
   children: string
-  makeAction:  (e: React.MouseEvent<HTMLElement>, accept?: boolean) => void
+  makeAction:  (accept?: boolean) => void
   disabled?: boolean
   accept?: boolean
 }
@@ -14,7 +14,8 @@ const MyButton: FC<Props> = ({children, makeAction, disabled, accept} : Props) =
 
 
   const handleClickEvent = (e: React.MouseEvent<HTMLElement>) => {
-    makeAction(e, accept);
+    e.preventDefault();
+    makeAction(accept);
   }
 
   return (

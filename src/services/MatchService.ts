@@ -41,6 +41,9 @@ import { IUserInMatchStatusResponse, UserInMatchStatusResponseEnum } from "../mo
 import { IUserInMatchStatusTrueResponse } from "../models/DTO/match/IUserInMatchStatusTrueResponse";
 import { WebsocketErrorEnum } from "../models/DTO/match/websocket/WebsocketErrorEnum";
 import { IWebsocketErrorDTO } from "../models/DTO/IWebsocketErrorDTO";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import { authSlice } from "../store/reducers/AuthReducer";
+import { IErrorResponse } from "../models/DTO/IErrorResponse";
 
 
 
@@ -178,7 +181,7 @@ export function cancelFindMatch(): void {
 }
 
 
-export async function getMatchState(matchId: number): Promise<void> {
+export async function getMatchState(matchId: string): Promise<void> {
   try {
     const res = await getMatchStateAxios(matchId);
     const match = mapToMatch(res.data);
@@ -233,12 +236,20 @@ export async function getMatchState(matchId: number): Promise<void> {
       store.dispatch(matchSlice.actions.loadMatchSuccess())
     }
   } catch (e: any) {
-    console.error(e)
+    console.error(e);
+    if (axios.isAxiosError(e)) {
+      const axiosError: AxiosError = e as AxiosError;
+
+      if (axiosError.response?.status === 404) {
+        myHistory.push("/error");
+      }
+    }
+
     store.dispatch(matchSlice.actions.getMatchStateFailure(e.message))
   }
 }
 
-export async function getMatchStateAndSubscribeToMatch(matchId: number): Promise<void> {
+export async function getMatchStateAndSubscribeToMatch(matchId: string): Promise<void> {
   await getMatchState(matchId);
   const matchData: MatchState = store.getState().matchData;
 
@@ -249,7 +260,7 @@ export async function getMatchStateAndSubscribeToMatch(matchId: number): Promise
   }
 }
 
-export async function getUsersRatingsData(matchId: number): Promise<void> {
+export async function getUsersRatingsData(matchId: string): Promise<void> {
   try {
     const res = await getUsersRatingsDataAxios(matchId);
     store.dispatch(matchSlice.actions.getUsersRatingsDataSuccess(res.data));
@@ -261,7 +272,7 @@ export async function getUsersRatingsData(matchId: number): Promise<void> {
 export function subscribeToChessMatch(): void {
   const state: RootState = store.getState();
 
-  if (state.matchData.matchId > 0 && !state.matchData.subscribing && !state.matchData.subscribed) {
+  if (state.matchData.matchId && !state.matchData.subscribing && !state.matchData.subscribed) {
     store.dispatch(matchSlice.actions.subscribingStart());
     connectToWebsocket(WebsocketConnectionEnum.CHESS_MATCH, onConnectedToChessMatch, onChessMatchWebsocketClose, onChessMatchError, chessMatchBeforeConnect, state.matchData.matchId);
   } else {
@@ -318,7 +329,7 @@ function onChessMatchWebsocketClose(evt: CloseEvent): void {
 
   if (matchData.subscribeConnectionAttemptsCount > 4) {
     deactivateWebsocketClient(WebsocketConnectionEnum.CHESS_MATCH);
-    store.dispatch(matchSlice.actions.subscribeFailure({message: "Проблемы с подключением к серверу.", code: WebsocketErrorEnum.CLOSE_CONNECTION_GENERAL} as IWebsocketErrorDTO));
+    store.dispatch(matchSlice.actions.subscribeFailure({message: "Проблемы с подключением к серверу.", code: WebsocketErrorEnum.RETRY_GENERAL} as IWebsocketErrorDTO));
   } else if (matchData.subscribing || matchData.subscribed) {
     store.dispatch(matchSlice.actions.subscribeFailure());
   }
@@ -412,7 +423,11 @@ function onChessMatchMessageReceived(message: IMessage): void {
       if (matchData.viewedMoveNumber === matchData.lastMoveNumber) {
         store.dispatch(matchSlice.actions.clearBoardState());
       }
-      getUsersRatingsData(matchData.matchId);
+      if (matchData.matchId) {
+        getUsersRatingsData(matchData.matchId);
+      } else {
+        throw new Error("There is no match id!");
+      }
       return;
     case ChessMatchWebsocketResponseEnum.GENERAL_BAD:
       console.error((response as IChessMatchBadResponse).message);
@@ -433,12 +448,12 @@ function onChessMatchMessageReceived(message: IMessage): void {
 export function sendChessMove(chessMoveEnd: ISelectChessPieceEnd) : void {
   try {
     const state: RootState = store.getState();
-    const matchId: number = state.matchData.matchId;
+    const matchId: string | null = state.matchData.matchId;
     const newMoveStart: ISelectChessPieceStart | null = state.matchData.newMoveStart;
     const subscribed: boolean = state.matchData.subscribed;
     const sendingMoveNumber: number = state.matchData.lastMoveNumber + 1;
 
-    if (matchId >= 0 && newMoveStart && subscribed) {
+    if (matchId && newMoveStart && subscribed) {
       const chessMoveToSend: IChessMove = { moveNumber: sendingMoveNumber, startPiece: newMoveStart.startPiece, startCoords: newMoveStart.startCoords,
                                             endPiece: chessMoveEnd.endPiece, endCoords: chessMoveEnd.endCoords,
                                             castling: chessMoveEnd.castling, pawnPromotionPiece: chessMoveEnd.pawnPromotionPiece};
@@ -500,7 +515,7 @@ function makeChessMove(chessMove: IChessMoveFullData): void {
 
   if (match) {
     if ((state.matchData.lastMoveNumber + 1) !== chessMove.moveNumber) {
-      if (state.matchData.matchId > 0) {
+      if (state.matchData.matchId) {
         getMatchStateAndSubscribeToMatch(state.matchData.matchId);
         return;
       } else {

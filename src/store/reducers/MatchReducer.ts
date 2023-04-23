@@ -19,7 +19,7 @@ import { deleteSelectionFromBoardState, updateBoardState} from '../../utils/Ches
 
 
 export type MatchState = {
-  matchId: number
+  matchId: string | null
   match: IMatch | null
   matchRecord: Array<IChessMoveFullData> | null
   matchRecordString: Array<string> | null
@@ -81,7 +81,7 @@ export type MatchState = {
 }
 
 const initialState: MatchState = {
-  matchId: -1,
+  matchId: null,
   match: null,
   matchRecord: null,
   matchRecordString: null,
@@ -186,7 +186,7 @@ export const matchSlice = createSlice({
           const splittedMessage: Array<string> = action.payload.message.split(" matchId=");
 
           if (splittedMessage.length === 2) {
-            state.matchId = Number(splittedMessage[1]);
+            state.matchId = splittedMessage[1];
             state.activeMatch = true;
             state.searchError = splittedMessage[0];
             state.searchErrorCode = WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_IN_MATCH;
@@ -211,7 +211,7 @@ export const matchSlice = createSlice({
     searchIncrementConnectionCount(state: MatchState){
       state.searchConnectionAttemptsCount = state.searchConnectionAttemptsCount + 1;
     },
-    searchAlreadyInMatch(state: MatchState, action: PayloadAction<number>){
+    searchAlreadyInMatch(state: MatchState, action: PayloadAction<string>){
       state.matchId = action.payload;
       state.activeMatch = true;
     },
@@ -294,7 +294,7 @@ export const matchSlice = createSlice({
     },
     updateUsersInfo(state: MatchState, action: PayloadAction<IChessMatchInfoResponse>){
       if (state.lastMoveNumber !== action.payload.lastMoveNumber) {
-        if (state.matchId > 0) {
+        if (state.matchId) {
           getMatchStateAndSubscribeToMatch(state.matchId)
           return;
         } else {

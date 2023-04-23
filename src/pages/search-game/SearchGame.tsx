@@ -36,20 +36,15 @@ const SearchGame: FC = () => {
     findMatch();
   };
 
-  const cancelSearch = (e: React.MouseEvent) => {
-    e.preventDefault();
-
+  const cancelSearch = () => {
     cancelFindMatch();
   }
 
-  const closeFindMatchWindow = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const closeFindMatchWindow = () => {
     dispatch(matchSlice.actions.searchClearError());
   }
 
-  const connectToMatch = (e: React.MouseEvent) => {
-    e.preventDefault();
-
+  const connectToMatch = () => {
     if (matchData.searchError) {
       dispatch(matchSlice.actions.searchClearError());
     }
@@ -130,7 +125,7 @@ const SearchGame: FC = () => {
           {authData.loggedIn ? 
             <Fragment>
               <p>Hello, user {authData.username}</p>
-              {matchData.matchId > 0 && matchData.activeMatch ?
+              {matchData.matchId && matchData.activeMatch ?
                 <Fragment>
                   <p>Вы уже в игре</p>
                   <button style={{color: "black"}} onClick={handleFindMatch}>Find match</button>

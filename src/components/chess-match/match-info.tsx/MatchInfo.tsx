@@ -38,19 +38,15 @@ const MatchInfo: FC = () => {
   }, [matchRecordString]);
 
 
-  const makeDrawOffer = (e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
+  const makeDrawOffer = () => {
     offerDraw();
   }
 
-  const makeSurrenderOffer = (e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
+  const makeSurrenderOffer = () => {
     surrender();
   }
 
-  const handleIncomingDraw = (e: React.MouseEvent<HTMLElement>, accept?: boolean) => {
-    e.preventDefault();
-
+  const handleIncomingDraw = (accept?: boolean) => {
     if (accept !== undefined) {
       handleDrawOffer(accept);
     }

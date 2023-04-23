@@ -9,8 +9,8 @@ import Endpoints from "../Endpoints";
 export const getUserInMatchStatusAxios = (): AxiosPromise<IUserInMatchStatusResponse> =>
 axiosInstance.get(Endpoints.RESOURCES.USER_IN_MATCH_STATUS)
 
-export const getMatchStateAxios = (matchId: number): AxiosPromise<IMatchStateResponse> =>
+export const getMatchStateAxios = (matchId: string): AxiosPromise<IMatchStateResponse> =>
 axiosInstance.get(Endpoints.RESOURCES.MATCH_BASE + matchId + "/state")
 
-export const getUsersRatingsDataAxios = (matchId: number): AxiosPromise<IUsersRatingsDataForMatchResponse> =>
+export const getUsersRatingsDataAxios = (matchId: string): AxiosPromise<IUsersRatingsDataForMatchResponse> =>
 axiosInstance.get(Endpoints.RESOURCES.FIND_MATCH_BASE + matchId + "/ratings")

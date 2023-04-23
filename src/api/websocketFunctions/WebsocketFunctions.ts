@@ -8,10 +8,10 @@ export enum WebsocketConnectionEnum { FIND_MATCH, CHESS_MATCH }
 
 interface IMyHeaders {
   "X-Authorization"?: string,
-  "Match-Id"?: number
+  "Match-Id"?: string
 }
 
-export async function connectToWebsocket(websocketConnectionType: WebsocketConnectionEnum, onConnectCb: Function, onWebSocketCloseCb: closeEventCallbackType, onErrorCb: Function, beforeConnectCb: () => Promise<void>, matchId?: number): Promise<void> {
+export async function connectToWebsocket(websocketConnectionType: WebsocketConnectionEnum, onConnectCb: Function, onWebSocketCloseCb: closeEventCallbackType, onErrorCb: Function, beforeConnectCb: () => Promise<void>, matchId?: string): Promise<void> {
   const client: CompatClient = WebsocketClientsHolder.getInstance(websocketConnectionType);
 
   if (client.active) {

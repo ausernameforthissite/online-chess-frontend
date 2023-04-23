@@ -12,6 +12,7 @@ import NumberCoord from "../../components/chess-match/chess-coord/number-coord/N
 import ChessPieceComponent from "../../components/chess-match/chess-piece/ChessPieceComponent"
 import MatchInfo from "../../components/chess-match/match-info.tsx/MatchInfo"
 import PawnPromotionModalWindow from "../../components/chess-match/pawn-promotion-modal-window/PawnPromotionModalWindow"
+import LoadingMessage from "../../components/loading-message/LoadingMessage"
 import ModalWindow from "../../components/modal-window/ModalWindow"
 import MyButton from "../../components/my-button/MyButton"
 import { useAppDispatch, useAppSelector } from "../../hooks/ReduxHooks"
@@ -44,10 +45,10 @@ const Match: FC = () => {
 
   useEffect(() => {
     const url = location.pathname;
-    const matchId = Number(url.slice(url.lastIndexOf("/") + 1 ));
+    const matchId = url.slice(url.lastIndexOf("/") + 1 );
 
 
-    if (Number.isNaN(matchId) || matchId < 0) {
+    if (!matchId) {
       console.error("Wrong match id!");
     } else if (!match || matchData.subscribeErrorCode === WebsocketErrorEnum.CLOSE_CONNECTION_NO_ACTIVE_MATCH && matchData.subscribeConnectionAttemptsCount <= 4) {
       console.log("Try connecting")
@@ -119,47 +120,26 @@ const Match: FC = () => {
     }
   }
 
-  const [jsonToSend, setJsonToSend] = useState("");
 
-  const sendToWebsocket = (e: React.MouseEvent<any>) => {
-    e.preventDefault();
-    const client: CompatClient = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.CHESS_MATCH);
-
-    if (!client.active) {
-      throw new Error("The client is not active! " + WebsocketConnectionEnum.CHESS_MATCH);
-    }
-  
-    client.send(getWebsocetSendEndpoint(WebsocketConnectionEnum.CHESS_MATCH), {}, jsonToSend);
-    setJsonToSend("");
-  }
-
-
-  const backToSearchGame = (e: React.MouseEvent) => {
-    e.preventDefault();
-
+  const backToSearchGame = () => {
     myHistory.push(`/`)
   }
 
-  const refreshPage = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const refreshPage = () => {
     window.location.reload();
   };
 
 
   return (
       <div>
-        <h1>Match</h1>
-        <form>
-          <label>
-            Webscoket request:
-            <input value={jsonToSend} type="text" onChange={(e) => {setJsonToSend(e.target.value)}}/>
-          </label>
-          <button onClick={sendToWebsocket}>Send to Webscoket</button>
-        </form>
-        {(matchData.subscribeErrorCode === WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_SUBSCRIBED || matchData.subscribeErrorCode && matchData.subscribeConnectionAttemptsCount > 4) &&
+        {(!match || !matchData.matchLoaded) && <LoadingMessage/>}
+
+        {(matchData.subscribeErrorCode === WebsocketErrorEnum.CLOSE_CONNECTION_GENERAL
+          || matchData.subscribeErrorCode === WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_SUBSCRIBED
+          || matchData.subscribeConnectionAttemptsCount > 4) &&
           <ModalWindow>
               <Fragment>
-                <p>{matchData.subscribeError}</p>
+                <p>{matchData.subscribeError ? matchData.subscribeError : "Неизвестная ошибка."}</p>
                 <div className={styles.buttonsGrid}>
                     <MyButton makeAction={backToSearchGame}>Вернуться на главную</MyButton>
                     <MyButton makeAction={refreshPage}>Обновить страницу</MyButton>

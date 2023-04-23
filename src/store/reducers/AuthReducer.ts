@@ -13,6 +13,7 @@ export type AuthState = {
   loading: boolean
   username: string | null
   loginRegisterError:  string | null
+  
 }
 
 const initialState: AuthState = {
@@ -22,7 +23,7 @@ const initialState: AuthState = {
   loggedIn: false,
   loading: false,
   username: null,
-  loginRegisterError:  null
+  loginRegisterError:  null,
 }
 
 export const authSlice = createSlice({
@@ -65,7 +66,7 @@ export const authSlice = createSlice({
     },
     logoutResult() {
 
-    }
+    },
   }
 })
 

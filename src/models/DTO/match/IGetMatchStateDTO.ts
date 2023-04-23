@@ -11,5 +11,5 @@ export interface IGetMatchStateDTO {
   myMatch: boolean
   myColor: ChessColor
   myTurn: boolean
-  matchId: number
+  matchId: string
 }

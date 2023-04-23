@@ -11,6 +11,7 @@ import { getAccessToken } from "./services/AuthService";
 import { myHistory } from "./utils/History";
 import { HistoryRouter } from "./utils/HistoryRouter";
 import Login from "./pages/auth/login/Login";
+import Error from "./pages/error/Error";
 
 
 
@@ -49,7 +50,12 @@ function App() {
           path="/match/:id"
           element={<Match />}
         />
-      </Routes> 
+        <Route
+          path="/error"
+          element={<Error />}
+        />
+        <Route path='*' element={<Error />} />
+      </Routes>
     </HistoryRouter>
   );
 }
