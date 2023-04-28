@@ -1,9 +1,11 @@
-.chessMove{
+@import '../../../variables.css';
+
+.chessMove {
   width: 166px;
   height: 50px;
   display: flex;
   align-items: center;
   padding-left: 14px;
   justify-content: left;
-  color: black;
+  color: var(--color-very-dark-gray);
 }

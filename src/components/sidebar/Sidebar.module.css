@@ -1,11 +1,14 @@
+@import '../../variables.css';
+
+
 .menu {
-  width: 200px;
+  width: var(--sidebar-width);
 }
 
 
 .menuOptionsContainer {
   padding: 20px 10px;
-  width: 180px;
+  width: calc(100% - 20px);
   display: flex;
   flex-direction: column;
 }
@@ -18,6 +21,10 @@
 
 .menuOption:hover {
   background-color: rgb(88, 120, 135);
+}
+
+.navLink {
+  text-decoration: none;
 }
 
 

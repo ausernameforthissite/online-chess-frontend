@@ -1,28 +1,34 @@
 import { FC } from "react";
-import { myHistory } from "../../utils/History";
+import { NavLink } from "react-router-dom";
+import { useAppSelector } from "../../hooks/ReduxHooks";
+import { CurrentPageEnum } from "../../models/ApplicationCommon";
 import styles from './Sidebar.module.css';
+
 
 
 const Sidebar: FC = () => {
 
-  const searchGame = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const currentPage: CurrentPageEnum | null = useAppSelector(state => state.authData.currentPage);
 
-    myHistory.push('/');
+
+  const defaultStyle: React.CSSProperties = {
   };
 
-  const rating = (e: React.MouseEvent) => {
-    e.preventDefault();
-
-    myHistory.push('/rating');
+  const currentPageStyle: React.CSSProperties = {
+    backgroundColor: "rgb(88, 120, 135)",
   };
 
 
   return (
       <div className={styles.menu}>
         <div className={styles.menuOptionsContainer}>
-          <div className={styles.menuOption} onClick={searchGame}>Поиск игры</div>
-          <div className={styles.menuOption} onClick={rating}>Рейтинг</div>
+          <NavLink className={styles.navLink} to="/">
+            <div className={styles.menuOption} style={currentPage === CurrentPageEnum.SEARCH_GAME ? currentPageStyle : defaultStyle}>Поиск игры</div>           
+          </NavLink>
+          <NavLink className={styles.navLink} to="/rating">
+            <div className={styles.menuOption} style={currentPage === CurrentPageEnum.RATING ? currentPageStyle : defaultStyle}>Рейтинг</div>
+          </NavLink>
+
         </div>
 
       </div>

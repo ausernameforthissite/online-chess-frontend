@@ -5,8 +5,6 @@ import { handleDrawOffer, offerDraw, surrender } from "../../../services/MatchSe
 import { getMatchResultString } from "../../../utils/ChessGameUtils";
 import MyButton from "../../my-button/MyButton";
 import ChessMoveComponent from "../chess-move/ChessMoveComponent";
-import DrawSurrenderButton from "../draw-surrender-button/DrawSurrenderButton";
-import IncomingDrawButton from "../incoming-draw-button/IncomingDrawButton";
 import FirstMoveTimer from "./first-move-timer/FirstMoveTimer";
 import MainTimer from "./main-timer/MainTimer";
 import styles from './MatchInfo.module.css';

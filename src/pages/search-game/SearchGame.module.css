@@ -1,6 +1,68 @@
-.buttonsGrid {
+@import '../../variables.css';
+
+
+.searchGameButtonsContainer {
+  position: absolute;
+  left: calc(50% - 215px);
+  width: 430px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+@media (max-width: calc(430px + (200px + 15px) * 2)) {
+  .searchGameButtonsContainer {
+    position: relative;
+    left: 0;
+    width: 430px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+}
+
+.searchGameButtonWrapper {
+  width: 50%;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.searchGameButtonHeader {
   width: fit-content;
-  display: grid;
-  grid-auto-flow: column;
-  grid-column-gap: 20px;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.searchGameButtonLowSizeText {
+  width: fit-content;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.link:hover {
+	color: var(--color-light-gray);
+}
+
+.goToGameWrapper {
+  position: absolute;
+  left: calc(50% - 105px);
+  width: 210px;
+  display: flex;
+  justify-content: center;
+}
+
+
+@media (max-width: calc(210px + (200px + 15px) * 2)) {
+  .goToGameWrapper {
+    position: relative;
+    left: 0;
+    width: 210px;
+    display: flex;
+    justify-content: center;
+  }
 }

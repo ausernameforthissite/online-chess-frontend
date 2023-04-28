@@ -42,8 +42,7 @@ import { IUserInMatchStatusTrueResponse } from "../models/DTO/match/IUserInMatch
 import { WebsocketErrorEnum } from "../models/DTO/match/websocket/WebsocketErrorEnum";
 import { IWebsocketErrorDTO } from "../models/DTO/IWebsocketErrorDTO";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { authSlice } from "../store/reducers/AuthReducer";
-import { IErrorResponse } from "../models/DTO/IErrorResponse";
+import { ChessGameTypesType } from "../models/chess-game/ChessGameType";
 
 
 
@@ -52,7 +51,6 @@ let chessMatchSubscribeTimeout: ReturnType<typeof setTimeout> | null;
 
 export async function getUserInMatchStatus(): Promise<void> {
   try {
-
     const res = await getUserInMatchStatusAxios();
     const userInMatchStatus: IUserInMatchStatusResponse = res.data;
     console.log(userInMatchStatus.type)
@@ -63,11 +61,13 @@ export async function getUserInMatchStatus(): Promise<void> {
     }
   } catch (e: any) {
     throw new Error(e.message);
+  } finally {
+    store.dispatch(matchSlice.actions.setSearchPageLoaded(true));
   }
 }
 
-export function findMatch() : void {
-  store.dispatch(matchSlice.actions.searchStart())
+export function findMatch(chessGameType: ChessGameTypesType) : void {
+  store.dispatch(matchSlice.actions.searchStart(chessGameType))
   connectToWebsocket(WebsocketConnectionEnum.FIND_MATCH, onConnectedToFindMatch, onFindMatchWebsocketClose, onFindMatchError, findMatchBeforeConnect);
 }
 
@@ -103,7 +103,6 @@ function onFindMatchError(message: IMessage): void  {
   if (errorCode) {
     switch(errorCode) {
       case WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_IN_MATCH:
-
       case WebsocketErrorEnum.CLOSE_CONNECTION_GENERAL:
         deactivateWebsocketClient(WebsocketConnectionEnum.FIND_MATCH);
         store.dispatch(matchSlice.actions.searchFailure({message: message.body, code: errorCode} as IWebsocketErrorDTO));
@@ -121,15 +120,27 @@ async function findMatchBeforeConnect(): Promise<void> {
   const client: CompatClient = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.FIND_MATCH);
   const clientConnectHeaders: StompHeaders = client.connectHeaders;
   const accessToken: string | null = await getAccessToken();
+  const searchGameType: ChessGameTypesType | null = store.getState().matchData.gameType;
+
+  let errorMessage: string;
 
   if (accessToken) {
     clientConnectHeaders["X-Authorization"] = "Bearer " + accessToken;
-    store.dispatch(matchSlice.actions.searchIncrementConnectionCount());
+
+    if (searchGameType) {
+      clientConnectHeaders["GameType"] = searchGameType;
+      store.dispatch(matchSlice.actions.searchIncrementConnectionCount());
+      return;
+    } else {
+      errorMessage = "No chessGameType was found.";
+    }
   } else {
-    client.deactivate();
-    store.dispatch(matchSlice.actions.searchFailure());
-    console.error("You are not logged in!");
+    errorMessage = "You are not logged in.";
   }
+
+  client.deactivate();
+  store.dispatch(matchSlice.actions.searchFailure());
+  console.error(errorMessage);
 }
 
 function onFindMatchMessageReceived(message: IMessage): void {
@@ -458,7 +469,7 @@ export function sendChessMove(chessMoveEnd: ISelectChessPieceEnd) : void {
                                             endPiece: chessMoveEnd.endPiece, endCoords: chessMoveEnd.endCoords,
                                             castling: chessMoveEnd.castling, pawnPromotionPiece: chessMoveEnd.pawnPromotionPiece};
       if (!store.getState().matchData.sendingChessMove) {
-        store.dispatch(matchSlice.actions.sendChessMoveStart(chessMoveToSend));
+        store.dispatch(matchSlice.actions.sendChessMoveStart());
         sendMessageToWebsocket(WebsocketConnectionEnum.CHESS_MATCH, createChessMatchMoveRequest(chessMoveToSend))
       }
       

@@ -1,6 +1,8 @@
+@import '../../../variables.css';
+
 .playerInfo {
   height: 50px;
-  background-color: rgb(242, 232, 231);
+  background-color: var(--color-almost-white);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -13,7 +15,7 @@
   height: 18px;
   border-radius: 50%;
   border-width: 2px;
-  border-color: rgb(30, 30, 30);
+  border-color: var(--color-very-dark-gray);
   border-style: solid;
 }
 
@@ -34,7 +36,7 @@
 .rating {
   width: 140px;
   font-size: 20pt;
-  color: rgb(151, 164, 170);
+  color: var(--color-medium-gray);
   display: flex;
   flex-direction: row;
   align-items: left;

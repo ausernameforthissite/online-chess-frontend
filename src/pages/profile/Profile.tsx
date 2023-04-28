@@ -11,7 +11,7 @@ const Profile: FC = () => {
       <Sidebar/>
       
       <div className={stylesCommon.pageWithSidebarContent}>
-        <h1>Profile</h1>
+        <p>Страница в разработке.</p>
       </div>
      
     </div>

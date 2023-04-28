@@ -1,3 +1,4 @@
+@import '../../../variables.css';
 
 .boardCell {
   width: 100px;
@@ -12,6 +13,6 @@
 .dot {
   width: 30px;
   height: 30px;
-  background-color: rgb(17, 14, 14);
+  background-color: var(--color-very-dark-gray);
   border-radius: 50%
 }

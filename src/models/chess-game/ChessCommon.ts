@@ -1,6 +1,6 @@
 export enum ChessColor {
   white = "WHITE",
-  black = "BLACK"
+  black = "BLACK",
 }
 
 export enum ChessMoveViewStatus { default, selected }

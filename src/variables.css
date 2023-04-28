@@ -1,8 +1,13 @@
 :root {
   --navbar-height: 50px;
+  --sidebar-width: 200px;
   
+  --color-almost-white: rgb(242, 232, 231);
   --color-light-text: rgb(230, 230, 230);
-  --color-dark-text: rgb(30, 30, 30);
-  --color-very-light-gray: rgb(210, 202, 199); 
+  --color-very-light-gray: rgb(210, 202, 199);
+  --color-light-gray: rgb(194, 184, 183);
+  --color-medium-gray: rgb(151, 164, 170);
+  --color-dark-cyan: rgb(88, 119, 137);
   --color-dark-background: rgb(45, 68, 82);
+  --color-very-dark-gray: rgb(30, 30, 30);
 }

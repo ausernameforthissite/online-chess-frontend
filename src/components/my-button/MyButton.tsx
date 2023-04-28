@@ -1,10 +1,10 @@
-import { FC } from 'react';
+import React, { FC } from 'react';
 import styles from './MyButton.module.css';
 
 
 type Props = {
   children: string
-  makeAction:  (accept?: boolean) => void
+  makeAction: (accept?: boolean) => void
   disabled?: boolean
   accept?: boolean
 }

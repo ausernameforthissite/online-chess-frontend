@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { IAuthResponse } from '../../models/DTO/auth/IAuthResponse'
 import { getTokenInfo } from '../../utils/AccessTokenUtils'
 import { IAccessTokenInfo } from '../../models/IAccessTokenInfo'
+import { CurrentPageEnum } from '../../models/ApplicationCommon'
 
 
 
@@ -14,6 +15,7 @@ export type AuthState = {
   username: string | null
   loginRegisterError:  string | null
   
+  currentPage: CurrentPageEnum | null
 }
 
 const initialState: AuthState = {
@@ -24,6 +26,8 @@ const initialState: AuthState = {
   loading: false,
   username: null,
   loginRegisterError:  null,
+
+  currentPage: null,
 }
 
 export const authSlice = createSlice({
@@ -34,11 +38,11 @@ export const authSlice = createSlice({
       state.loading = true
       state.loginRegisterError = null
     },
-    registerSuccess(state: AuthState){
+    registerSuccess(state: AuthState) {
       state.loading = false
       state.registered = true
     },
-    registerFailure(state: AuthState, action: PayloadAction<string>){
+    registerFailure(state: AuthState, action: PayloadAction<string>) {
       state.loading = false
       state.loginRegisterError = action.payload
     },
@@ -46,7 +50,7 @@ export const authSlice = createSlice({
       state.loading = true
       state.loginRegisterError = null
     },
-    loginSuccess(state: AuthState, action: PayloadAction<IAuthResponse>){
+    loginSuccess(state: AuthState, action: PayloadAction<IAuthResponse>) {
       state.loading = false
       state.loggedIn = true
       state.registered = true
@@ -55,7 +59,7 @@ export const authSlice = createSlice({
       state.accessTokenExpirationTime = tokenInfo.exp
       state.username = tokenInfo.username
     },
-    loginFailure(state: AuthState, action: PayloadAction<string | undefined>){
+    loginFailure(state: AuthState, action: PayloadAction<string | undefined>) {
       state.loading = false
       if (action.payload) {
         state.loginRegisterError = action.payload
@@ -67,6 +71,9 @@ export const authSlice = createSlice({
     logoutResult() {
 
     },
+    setCurrentPage(state: AuthState, action: PayloadAction<CurrentPageEnum | null>) {
+      state.currentPage = action.payload;
+    }
   }
 })
 

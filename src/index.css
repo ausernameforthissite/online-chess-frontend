@@ -14,7 +14,7 @@ body {
 }
 
 button {
-  color: var(--color-dark-text);
+  color: var(--color-very-dark-gray);
   user-select: none;
 }
 

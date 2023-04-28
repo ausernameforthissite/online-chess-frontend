@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { ChessColor } from '../../models/chess-game/ChessCommon'
+import { ChessGameTypesType } from '../../models/chess-game/ChessGameType'
 import { IChessMatchResult } from '../../models/chess-game/IChessMatchResult'
 import { chessMoveToString, IChessMove, IChessMoveFullData } from '../../models/chess-game/IChessMove'
 import { IMatch } from '../../models/chess-game/IMatch'
@@ -20,6 +21,7 @@ import { deleteSelectionFromBoardState, updateBoardState} from '../../utils/Ches
 
 export type MatchState = {
   matchId: string | null
+  gameType: ChessGameTypesType | null
   match: IMatch | null
   matchRecord: Array<IChessMoveFullData> | null
   matchRecordString: Array<string> | null
@@ -38,6 +40,7 @@ export type MatchState = {
   searchCanceling: boolean
   searchCancelError: string | null
   searchConnectionAttemptsCount: number
+  searchPageLoaded: boolean
 
   subscribing: boolean
   subscribed: boolean
@@ -82,6 +85,7 @@ export type MatchState = {
 
 const initialState: MatchState = {
   matchId: null,
+  gameType: null,
   match: null,
   matchRecord: null,
   matchRecordString: null,
@@ -100,6 +104,7 @@ const initialState: MatchState = {
   searchCanceling: false,
   searchCancelError: null,
   searchConnectionAttemptsCount: 0,
+  searchPageLoaded: false,
 
   subscribing: false,
   subscribed: false,
@@ -146,8 +151,9 @@ export const matchSlice = createSlice({
   name: 'match',
   initialState,
   reducers: {
-    searchStart(state: MatchState) {
+    searchStart(state: MatchState, action: PayloadAction<ChessGameTypesType>) {
       state.searchStart = true;
+      state.gameType = action.payload;
       state.searchError = null;
       state.searchCancelError = null;
     },
@@ -155,7 +161,7 @@ export const matchSlice = createSlice({
       state.searchStart = false;
       state.searching = true;
     },
-    searchSuccess(state: MatchState, action: PayloadAction<IFindMatchOkResponse>){
+    searchSuccess(state: MatchState, action: PayloadAction<IFindMatchOkResponse>) {
       state.searchStart = false;
       state.searching = false;
       state.searchCanceling = false;
@@ -163,20 +169,21 @@ export const matchSlice = createSlice({
       state.matchId = action.payload.matchId;
       state.activeMatch = true;
     },
-    searchCancelStart(state: MatchState){
+    searchCancelStart(state: MatchState) {
       state.searchCanceling = true;
     },
-    searchCanceled(state: MatchState){
+    searchCanceled(state: MatchState) {
       state.searchCanceling = false;
       state.searchStart = false;
       state.searching = false;
       state.searchCancelError = null;
       state.searchConnectionAttemptsCount = 0;
+      state.gameType = null;
     },
-    searchCancelFailure(state: MatchState, action: PayloadAction<string>){
+    searchCancelFailure(state: MatchState, action: PayloadAction<string>) {
       state.searchCancelError = action.payload;
     },
-    searchFailure(state: MatchState, action: PayloadAction<IWebsocketErrorDTO | undefined>){
+    searchFailure(state: MatchState, action: PayloadAction<IWebsocketErrorDTO | undefined>) {
       state.searchStart = false;
       state.searching = false;
       state.searchCanceling = false;
@@ -201,21 +208,25 @@ export const matchSlice = createSlice({
         state.searchConnectionAttemptsCount = 0;
       }
     },
-    failCurrentFindMatchActions(state: MatchState){
+    failCurrentFindMatchActions(state: MatchState) {
       state.searchCanceling = false;
     },
-    searchClearError(state: MatchState){
+    searchClearError(state: MatchState) {
       state.searchError = null;
       state.searchCancelError = null;
+      state.gameType = null;
     },
-    searchIncrementConnectionCount(state: MatchState){
+    searchIncrementConnectionCount(state: MatchState) {
       state.searchConnectionAttemptsCount = state.searchConnectionAttemptsCount + 1;
     },
-    searchAlreadyInMatch(state: MatchState, action: PayloadAction<string>){
+    searchAlreadyInMatch(state: MatchState, action: PayloadAction<string>) {
       state.matchId = action.payload;
       state.activeMatch = true;
     },
-    getMatchStateSuccess(state: MatchState, action: PayloadAction<IGetMatchStateDTO>){
+    setSearchPageLoaded(state: MatchState, action: PayloadAction<boolean>) {
+      state.searchPageLoaded = action.payload;
+    },
+    getMatchStateSuccess(state: MatchState, action: PayloadAction<IGetMatchStateDTO>) {
       state.match = action.payload.match
       state.matchRecord = action.payload.matchRecord
       state.matchRecordString = action.payload.matchRecordString
@@ -243,10 +254,10 @@ export const matchSlice = createSlice({
         }
       }
     },
-    getMatchStateFailure(state: MatchState, action: PayloadAction<string>){
+    getMatchStateFailure(state: MatchState, action: PayloadAction<string>) {
       state.matchStateError = action.payload
     },
-    getUsersRatingsDataSuccess(state: MatchState, action: PayloadAction<IUsersRatingsDataForMatchResponse>){
+    getUsersRatingsDataSuccess(state: MatchState, action: PayloadAction<IUsersRatingsDataForMatchResponse>) {
       state.whiteRating = action.payload.whiteInitialRating;
       state.blackRating = action.payload.blackInitialRating;
 
@@ -258,26 +269,26 @@ export const matchSlice = createSlice({
         state.blackRatingChange = action.payload.blackRatingChange;
       }
     },
-    subscribingStart(state: MatchState){
+    subscribingStart(state: MatchState) {
       state.subscribing = true
       state.subscribed = false
       state.subscribeError = null
       state.subscribeErrorCode = null
     },
-    subscribeSuccess(state: MatchState){
+    subscribeSuccess(state: MatchState) {
       state.subscribing = false
       state.subscribed = true
       state.subscribeError = null
       state.subscribeErrorCode = null
     },
-    subscribeFinished(state: MatchState){
+    subscribeFinished(state: MatchState) {
       state.subscribing = false;
       state.subscribed = false;
       state.subscribeError = null;
       state.subscribeErrorCode = null;
       state.subscribeConnectionAttemptsCount = 0;
     },
-    subscribeFailure(state: MatchState, action: PayloadAction<IWebsocketErrorDTO | undefined>){
+    subscribeFailure(state: MatchState, action: PayloadAction<IWebsocketErrorDTO | undefined>) {
       state.subscribing = false;
       state.subscribed = false;
 
@@ -286,13 +297,13 @@ export const matchSlice = createSlice({
         state.subscribeErrorCode = action.payload.code;
       }
     },
-    subscribeIncrementConnectionCount(state: MatchState){
+    subscribeIncrementConnectionCount(state: MatchState) {
       state.subscribeConnectionAttemptsCount = state.subscribeConnectionAttemptsCount + 1;
     },
     loadMatchSuccess(state: MatchState) {
       state.matchLoaded = true;
     },
-    updateUsersInfo(state: MatchState, action: PayloadAction<IChessMatchInfoResponse>){
+    updateUsersInfo(state: MatchState, action: PayloadAction<IChessMatchInfoResponse>) {
       if (state.lastMoveNumber !== action.payload.lastMoveNumber) {
         if (state.matchId) {
           getMatchStateAndSubscribeToMatch(state.matchId)
@@ -335,7 +346,7 @@ export const matchSlice = createSlice({
         state.blackTimerStopped = true
       }
     },
-    updateOnUserSubscribed(state: MatchState, action: PayloadAction<ChessColor>){
+    updateOnUserSubscribed(state: MatchState, action: PayloadAction<ChessColor>) {
       if (action.payload === ChessColor.white) {
         state.whiteUserOnline = true;
         state.whiteReconnectTimeLeftMS = -1;
@@ -344,7 +355,7 @@ export const matchSlice = createSlice({
         state.blackReconnectTimeLeftMS = -1;
       }
     },
-    updateOnUserDisconnected(state: MatchState, action: PayloadAction<IChessMatchUserDisconnectedResponse>){
+    updateOnUserDisconnected(state: MatchState, action: PayloadAction<IChessMatchUserDisconnectedResponse>) {
       const reconnectTimeLeftMS: number = state.lastMoveNumber < 1 ? -1 : LEFT_GAME_TIMEOUT_MS;
 
       if (action.payload.disconnectedUserColor === ChessColor.white) {
@@ -355,7 +366,7 @@ export const matchSlice = createSlice({
         state.blackReconnectTimeLeftMS = reconnectTimeLeftMS;
       }
     },
-    makeChessMove(state: MatchState, action: PayloadAction<IMakeChessMoveDTO>){
+    makeChessMove(state: MatchState, action: PayloadAction<IMakeChessMoveDTO>) {
       if (state.match && state.matchRecord && state.matchRecordString) {
         if (action.payload.boardState && action.payload.enPassantPawnCoords !== undefined) {
           updateBoardState(state.match.boardState, action.payload.boardState);
@@ -413,7 +424,7 @@ export const matchSlice = createSlice({
         throw new Error("Match or match state is not found found")
       }
     },
-    selectChessPiece(state: MatchState, action: PayloadAction<ISelectChessPiece>){
+    selectChessPiece(state: MatchState, action: PayloadAction<ISelectChessPiece>) {
       if (state.match) {
         updateBoardState(state.match.boardState, action.payload.boardState);
         state.pieceSelected = true;
@@ -422,7 +433,7 @@ export const matchSlice = createSlice({
         throw new Error("Match is not found")
       }
     },
-    clearBoardState(state: MatchState){
+    clearBoardState(state: MatchState) {
       if (state.match) {
         deleteSelectionFromBoardState(state.match.boardState)
         state.pieceSelected = false;
@@ -431,10 +442,10 @@ export const matchSlice = createSlice({
         throw new Error("Match is not found")
       }
     },
-    sendChessMoveStart(state: MatchState, action: PayloadAction<IChessMove>){
+    sendChessMoveStart(state: MatchState) {
       state.sendingChessMove = true
     },
-    sendChessMoveFailure(state: MatchState){
+    sendChessMoveFailure(state: MatchState) {
       state.sendingChessMove = false
     },
     viewCertainChessMove(state: MatchState, action: PayloadAction<IViewCertainMoveDTO>) {
@@ -448,45 +459,45 @@ export const matchSlice = createSlice({
         throw new Error("Match or match record is not found");
       }
     },
-    offerDrawStart(state: MatchState){
+    offerDrawStart(state: MatchState) {
       state.offeringDraw = true;
     },
-    offerDrawSuccess(state: MatchState){
+    offerDrawSuccess(state: MatchState) {
       state.nextPossibleDrawOfferSendMoveNumber = (state.lastMoveNumber + 1) + 2;
     },
-    offerDrawFailure(state: MatchState){
+    offerDrawFailure(state: MatchState) {
       if (state.offeringDraw) {
         state.offeringDraw = false;
       }
     },
-    offerDrawRejected(state: MatchState){
+    offerDrawRejected(state: MatchState) {
       state.offeringDraw = false;
     },
-    receiveDrawOffer(state: MatchState, action: PayloadAction<ChessColor>){
+    receiveDrawOffer(state: MatchState, action: PayloadAction<ChessColor>) {
       state.drawOfferReceived = true;
       state.incomingDrawHandled = false;
       state.drawOfferUserColor = action.payload;
       state.drawOfferReceivedMoveNumber = state.lastMoveNumber + 1;
       state.nextPossibleDrawOfferSendMoveNumber = (state.lastMoveNumber + 1) + 2;
     },
-    handleIncomingDrawOfferStart(state: MatchState){
+    handleIncomingDrawOfferStart(state: MatchState) {
       state.incomingDrawHandled = true;
     },
-    handleIncomingDrawOfferFinish(state: MatchState){
+    handleIncomingDrawOfferFinish(state: MatchState) {
       state.drawOfferReceived = false;
       state.incomingDrawHandled = true;
       state.nextPossibleDrawOfferSendMoveNumber = (state.lastMoveNumber + 1) + 1;
     },
-    handleIncomingDrawOfferFailure(state: MatchState){
+    handleIncomingDrawOfferFailure(state: MatchState) {
       state.incomingDrawHandled = false;
     },
-    surrenderStart(state: MatchState){
+    surrenderStart(state: MatchState) {
       state.surrendering = true
     },
-    surrenderFailure(state: MatchState){
+    surrenderFailure(state: MatchState) {
       state.surrendering = false
     },
-    finishChessMatch(state: MatchState, action: PayloadAction<IChessMatchResult>){
+    finishChessMatch(state: MatchState, action: PayloadAction<IChessMatchResult>) {
       if (state.match) {
         state.myTurn = false
         state.activeMatch = false
@@ -509,11 +520,11 @@ export const matchSlice = createSlice({
         throw new Error("Match is not found")
       }
     },
-    failCurrentChessGameActions(state: MatchState){
+    failCurrentChessGameActions(state: MatchState) {
       state.sendingChessMove = false;
       state.surrendering = false
     },
-    clearMatchState(state: MatchState){
+    clearMatchState() {
       return initialState;
     }
   }
