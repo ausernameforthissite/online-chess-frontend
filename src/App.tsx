@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Navbar from "./components/navbar/Navbar";
 import { useAppSelector } from "./hooks/ReduxHooks";
 import SearchGame from "./pages/search-game/SearchGame";
-import Match from "./pages/match/Match";
+import Game from "./pages/game/Game";
 import Profile from "./pages/profile/Profile";
 import Rating from "./pages/rating/Rating";
 import Register from "./pages/auth/register/Register";
@@ -47,8 +47,8 @@ function App() {
           element={<Profile />}
         />
         <Route
-          path="/match/:id"
-          element={<Match />}
+          path="/game/:id"
+          element={<Game />}
         />
         <Route
           path="/error"

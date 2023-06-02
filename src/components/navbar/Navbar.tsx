@@ -4,7 +4,6 @@ import OutsideClickHandler from 'react-outside-click-handler';
 import PopUpUserMenu from "../pop-up-user-menu/PopUpUserMenu";
 import styles from './Navbar.module.css';
 import { useAppSelector } from "../../hooks/ReduxHooks";
-import { myHistory } from "../../utils/History";
 import { Link } from "react-router-dom";
 
 

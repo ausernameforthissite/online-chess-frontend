@@ -1,11 +1,11 @@
-import { IMatch } from "../models/chess-game/IMatch";
-import { IMatchStateResponse } from "../models/DTO/match/IMatchStateResponse";
+import { IGame } from "../models/chess-game/IGame";
+import { IGameStateResponse } from "../models/DTO/game/IGameStateResponse";
 import { getDefaultBoardState } from "./ChessGameUtils";
 
-export function mapToMatch(matchStateResponse: IMatchStateResponse): IMatch {
+export function mapToGame(gameStateResponse: IGameStateResponse): IGame {
   return {
-    usersInMatch: matchStateResponse.usersInMatch,
+    usersInGame: gameStateResponse.usersInGame,
     enPassantPawnCoords: null,
     boardState: getDefaultBoardState(),
-    result: matchStateResponse.matchResult } as IMatch;
+    result: gameStateResponse.gameResult } as IGame;
 }

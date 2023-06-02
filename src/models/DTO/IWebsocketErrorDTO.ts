@@ -1,4 +1,4 @@
-import { WebsocketErrorEnum } from "./match/websocket/WebsocketErrorEnum"
+import { WebsocketErrorEnum } from "./game/websocket/WebsocketErrorEnum"
 
 export interface IWebsocketErrorDTO {
   message: string

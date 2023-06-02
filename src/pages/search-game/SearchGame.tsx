@@ -8,9 +8,9 @@ import MyButton from "../../components/my-button/MyButton";
 import Sidebar from "../../components/sidebar/Sidebar";
 import ForwardTimer from "../../components/timers/forward-timer/ForwardTimer";
 import { useAppDispatch, useAppSelector } from "../../hooks/ReduxHooks";
-import { WebsocketErrorEnum } from "../../models/DTO/match/websocket/WebsocketErrorEnum";
-import { cancelFindMatch, findMatch, getUserInMatchStatus } from "../../services/MatchService";
-import { matchSlice } from "../../store/reducers/MatchReducer";
+import { WebsocketErrorEnum } from "../../models/DTO/game/websocket/WebsocketErrorEnum";
+import { cancelFindGame, findGame, getUserInGameStatus } from "../../services/GameService";
+import { gameSlice } from "../../store/reducers/GameReducer";
 import { myHistory } from "../../utils/History";
 import styles from './SearchGame.module.css';
 import stylesCommon from '../PageWithSidebar.module.css';
@@ -25,15 +25,15 @@ import LoadingMessage from "../../components/loading-message/LoadingMessage";
 const SearchGame: FC = () => {
 
   const authData = useAppSelector(state => state.authData);
-  const matchData = useAppSelector(state => state.matchData);
+  const gameData = useAppSelector(state => state.gameData);
   const dispatch = useAppDispatch();
 
 
   useEffect(() => {
     if (authData.loggedIn) {
-      getUserInMatchStatus();
+      getUserInGameStatus();
     } else {
-      dispatch(matchSlice.actions.setSearchPageLoaded(true));
+      dispatch(gameSlice.actions.setSearchPageLoaded(true));
     }
 
   }, [authData.loggedIn]);
@@ -43,32 +43,32 @@ const SearchGame: FC = () => {
 
     return function cleanup() {
       dispatch(authSlice.actions.setCurrentPage(null));
-      dispatch(matchSlice.actions.setSearchPageLoaded(false));
+      dispatch(gameSlice.actions.setSearchPageLoaded(false));
     }; 
   }, []);
 
 
-  const handleFindMatch = (chessGameType?: ChessGameTypesType) => {
+  const handleFindGame = (chessGameType?: ChessGameTypesType) => {
     if (chessGameType !== undefined) {
-      findMatch(chessGameType);
+      findGame(chessGameType);
     }
   }
 
 
   const cancelSearch = () => {
-    cancelFindMatch();
+    cancelFindGame();
   }
 
-  const closeFindMatchWindow = () => {
-    dispatch(matchSlice.actions.searchClearError());
+  const closeFindGameWindow = () => {
+    dispatch(gameSlice.actions.searchClearError());
   }
 
-  const connectToMatch = () => {
-    if (matchData.searchError) {
-      dispatch(matchSlice.actions.searchClearError());
+  const connectToGame = () => {
+    if (gameData.searchError) {
+      dispatch(gameSlice.actions.searchClearError());
     }
 
-    myHistory.push(`/match/${matchData.matchId}`)
+    myHistory.push(`/game/${gameData.gameId}`)
   };
 
 
@@ -76,13 +76,13 @@ const SearchGame: FC = () => {
 
   const sendToWebsocket = (e: React.MouseEvent<any>) => {
     e.preventDefault();
-    const client: CompatClient = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.FIND_MATCH);
+    const client: CompatClient = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.FIND_GAME);
 
     if (!client.active) {
-      throw new Error("The client is not active! " + WebsocketConnectionEnum.FIND_MATCH);
+      throw new Error("The client is not active! " + WebsocketConnectionEnum.FIND_GAME);
     }
   
-    client.send(getWebsocetSendEndpoint(WebsocketConnectionEnum.FIND_MATCH), {}, jsonToSend);
+    client.send(getWebsocetSendEndpoint(WebsocketConnectionEnum.FIND_GAME), {}, jsonToSend);
     setJsonToSend("");
   }
 
@@ -91,13 +91,13 @@ const SearchGame: FC = () => {
   return (
     <Fragment>
 
-      {(!matchData.searchPageLoaded || !authData.loggedIn && authData.loading) ?
+      {(!gameData.searchPageLoaded || !authData.loggedIn && authData.loading) ?
         <LoadingMessage/>
       :     
         <Fragment>
-          {(matchData.searchStart || matchData.searching || matchData.searchError) &&
+          {(gameData.searchStart || gameData.searching || gameData.searchError) &&
             <ModalWindow>
-              {matchData.searchStart ? 
+              {gameData.searchStart ? 
                 <p>Подключаемся к серверу...</p>
               :
                 <Fragment>
@@ -109,16 +109,16 @@ const SearchGame: FC = () => {
                     <button style={{color: "black"}} onClick={sendToWebsocket}>Send to Webscoket</button>
                   </form>
                   
-                  {matchData.searchError ? 
+                  {gameData.searchError ? 
                     <Fragment>
-                      <p>{matchData.searchError}</p>
-                      {matchData.searchErrorCode === WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_IN_MATCH ? 
+                      <p>{gameData.searchError}</p>
+                      {gameData.searchErrorCode === WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_IN_GAME ? 
                         <div className={styles.buttonsGrid}>
-                          <MyButton makeAction={connectToMatch}>Перейти к игре</MyButton>
-                          <MyButton makeAction={closeFindMatchWindow}>Отмена</MyButton>
+                          <MyButton makeAction={connectToGame}>Перейти к игре</MyButton>
+                          <MyButton makeAction={closeFindGameWindow}>Отмена</MyButton>
                         </div>
                       :
-                        <MyButton makeAction={closeFindMatchWindow}>Ок</MyButton>
+                        <MyButton makeAction={closeFindGameWindow}>Ок</MyButton>
                       }
                     </Fragment>
                   : 
@@ -129,10 +129,10 @@ const SearchGame: FC = () => {
                   }
 
                   <br/>
-                  {matchData.searchCancelError ?
-                    <p>{matchData.searchCancelError}</p>
+                  {gameData.searchCancelError ?
+                    <p>{gameData.searchCancelError}</p>
                   :
-                    matchData.searching && <MyButton makeAction={cancelSearch} disabled={matchData.searchCanceling}>Отменить</MyButton>
+                    gameData.searching && <MyButton makeAction={cancelSearch} disabled={gameData.searchCanceling}>Отменить</MyButton>
                   }
                 </Fragment>
               }
@@ -144,11 +144,11 @@ const SearchGame: FC = () => {
             <div className={stylesCommon.pageWithSidebarContent}>
               {authData.loggedIn ? 
                 <Fragment>
-                  {matchData.matchId && matchData.activeMatch ?
+                  {gameData.gameId && gameData.activeGame ?
                     <Fragment>
                       <p>Завершите текущую партию, прежде чем искать следующую!</p>
                       <div className={styles.goToGameWrapper}>
-                        <SearchGameButton makeAction={connectToMatch}>
+                        <SearchGameButton makeAction={connectToGame}>
                           <div className={styles.searchGameButtonLowSizeText}>перейти к игре</div>
                         </SearchGameButton>
                       </div>
@@ -159,7 +159,7 @@ const SearchGame: FC = () => {
                         {ChessGameTypesArray.map((chessGameType, i) => {
                           return (
                             <div key={i} className={styles.searchGameButtonWrapper}>
-                              <SearchGameButton makeAction={handleFindMatch} disabled={matchData.searchStart || matchData.searching} chessGameType={chessGameType}>
+                              <SearchGameButton makeAction={handleFindGame} disabled={gameData.searchStart || gameData.searching} chessGameType={chessGameType}>
                                 <Fragment>
                                   <div className={styles.searchGameButtonHeader}>{ChessGameTypes[chessGameType].simpleName}</div>
                                   <div className={styles.searchGameButtonLowSizeText}>{ChessGameTypes[chessGameType].timeControl}</div>

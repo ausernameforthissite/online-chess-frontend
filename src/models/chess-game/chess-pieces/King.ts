@@ -2,7 +2,7 @@ import { BoardState } from "../BoardState";
 import { boardLength, IChessCoords, PieceViewStatus } from "../ChessCommon";
 import { checkGoOrCapture, IChessPiece, isUnderAttack} from "../exports";
 import { BoardCellEntityEnum, IBoardCellEntity } from "../IBoardCellEntity";
-import { IPossibleMoveCell } from "../IPossibleMoveCell";
+import { IBoardCell } from "../IBoardCell";
 
 
 
@@ -65,10 +65,19 @@ function checkCastling(currentPiece: IChessPiece, boardState: BoardState, startC
             }
           }
 
-          boardState[startCoords.numberCoord][endLetterCoord] = {
-            type: BoardCellEntityEnum.boardCell,
-            castling: i
-          } as IPossibleMoveCell;
+          if (boardState[startCoords.numberCoord][endLetterCoord] === null) {
+            boardState[startCoords.numberCoord][endLetterCoord] = {
+              type: BoardCellEntityEnum.boardCell,
+              possibleMove: true,
+              castling: i
+            } as IBoardCell;
+          } else {
+            let cell = (boardState[startCoords.numberCoord][endLetterCoord] as IBoardCell);
+            cell.possibleMove = true;
+            cell.castling = i;
+          }
+
+          
         }
       }
     }

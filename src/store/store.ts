@@ -1,12 +1,12 @@
 import { AnyAction, combineReducers, configureStore, Reducer } from "@reduxjs/toolkit";
 import authReducer from "./reducers/AuthReducer";
 import logger from 'redux-logger'
-import MatchReducer from "./reducers/MatchReducer";
+import gameReducer from "./reducers/GameReducer";
 
 
 const combinedReducer = combineReducers({
     authData: authReducer,
-    matchData: MatchReducer
+    gameData: gameReducer
 })
 
 

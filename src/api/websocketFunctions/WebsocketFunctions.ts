@@ -1,17 +1,17 @@
 import { closeEventCallbackType, CompatClient } from "@stomp/stompjs";
-import { IWebsocketSendMessage } from "../../models/DTO/match/websocket/IWebsocketSendMessage";
+import { IWebsocketSendMessage } from "../../models/DTO/game/websocket/IWebsocketSendMessage";
 import { getWebsocetSendEndpoint } from "../Endpoints";
 import { WebsocketClientsHolder } from "../WebsocketClientsHolder";
 
 
-export enum WebsocketConnectionEnum { FIND_MATCH, CHESS_MATCH }
+export enum WebsocketConnectionEnum { FIND_GAME, CHESS_GAME }
 
 interface IMyHeaders {
   "X-Authorization"?: string,
-  "Match-Id"?: string
+  "Game-Id"?: string
 }
 
-export async function connectToWebsocket(websocketConnectionType: WebsocketConnectionEnum, onConnectCb: Function, onWebSocketCloseCb: closeEventCallbackType, onErrorCb: Function, beforeConnectCb: () => Promise<void>, matchId?: string): Promise<void> {
+export async function connectToWebsocket(websocketConnectionType: WebsocketConnectionEnum, onConnectCb: Function, onWebSocketCloseCb: closeEventCallbackType, onErrorCb: Function, beforeConnectCb: () => Promise<void>, gameId?: string): Promise<void> {
   const client: CompatClient = WebsocketClientsHolder.getInstance(websocketConnectionType);
 
   if (client.active) {
@@ -23,11 +23,11 @@ export async function connectToWebsocket(websocketConnectionType: WebsocketConne
   let headers: IMyHeaders = {};
 
   switch (websocketConnectionType) {
-    case WebsocketConnectionEnum.FIND_MATCH:
+    case WebsocketConnectionEnum.FIND_GAME:
       break;
 
-    case WebsocketConnectionEnum.CHESS_MATCH:
-      headers["Match-Id"] = matchId;
+    case WebsocketConnectionEnum.CHESS_GAME:
+      headers["Game-Id"] = gameId;
       break;
     default:
       throw new Error("Incorrect websocketConnectionType: " + websocketConnectionType);

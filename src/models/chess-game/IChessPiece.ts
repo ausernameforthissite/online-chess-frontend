@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { boardLength, ChessColor, IChessCoords, PieceViewStatus } from "./ChessCommon";
 import { BoardState } from "./BoardState";
-import { IPossibleMoveCell } from "./IPossibleMoveCell";
+import { IBoardCell } from "./IBoardCell";
 import { BoardCellEntityEnum, IBoardCellEntity } from "./IBoardCellEntity";
 import { findPossibleMovesBishop, isAttakingFieldBishop } from "./chess-pieces/Bishop";
 import { findPossibleMovesKing, isAttakingFieldKing } from "./exports";
@@ -16,6 +16,7 @@ export interface IChessPiece extends IBoardCellEntity {
   color: ChessColor;
   firstMove?: boolean
   viewStatus?: PieceViewStatus;
+  lastMove?: boolean;
 }
 
 
@@ -166,7 +167,11 @@ export function checkGoOrCapture(boardState: BoardState, startCoords: IChessCoor
 
   if (boardState[endCoords.numberCoord][endCoords.letterCoord] === null || (boardState[endCoords.numberCoord][endCoords.letterCoord] as IBoardCellEntity).type === BoardCellEntityEnum.boardCell) {
     if (!willBeCheck(boardState, startCoords, endCoords, kingCoords, startPieceColor)) {
-      boardState[endCoords.numberCoord][endCoords.letterCoord] = {type: BoardCellEntityEnum.boardCell} as IPossibleMoveCell;
+      if (boardState[endCoords.numberCoord][endCoords.letterCoord] === null) {
+        boardState[endCoords.numberCoord][endCoords.letterCoord] = {type: BoardCellEntityEnum.boardCell, possibleMove: true} as IBoardCell;
+      } else {
+        (boardState[endCoords.numberCoord][endCoords.letterCoord] as IBoardCell).possibleMove = true;
+      }
     }
     return true;
   }

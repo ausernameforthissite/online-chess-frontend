@@ -1,5 +1,5 @@
-import { SubscribeResponse } from "../DTO/match/ISubscribeResponse";
-import { IWebsocketSendMessage } from "../DTO/match/websocket/IWebsocketSendMessage";
+import { SubscribeResponse } from "../DTO/game/ISubscribeResponse";
+import { IWebsocketSendMessage } from "../DTO/game/websocket/IWebsocketSendMessage";
 import { IChessCoords } from "./ChessCommon";
 import { BoardCellEntityEnum } from "./IBoardCellEntity";
 
@@ -107,6 +107,6 @@ function chessPieceToNotationLetter(chessPiece: BoardCellEntityEnum | null): str
 
 function chessPiecePostionToString(chessPiece: BoardCellEntityEnum | null, coords: IChessCoords): string {
   let chessPiecePostionString = chessPieceToNotationLetter(chessPiece);
-  chessPiecePostionString += String.fromCharCode(97 + coords.letterCoord) + coords.numberCoord
+  chessPiecePostionString += String.fromCharCode(97 + coords.letterCoord) + (coords.numberCoord + 1)
   return chessPiecePostionString;
 }

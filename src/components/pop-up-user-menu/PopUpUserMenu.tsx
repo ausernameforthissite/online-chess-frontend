@@ -1,8 +1,7 @@
 import { FC, Fragment } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useAppSelector } from "../../hooks/ReduxHooks";
 import { logoutUser } from "../../services/AuthService";
-import { myHistory } from "../../utils/History";
 import styles from './PopUpUserMenu.module.css';
 
 type Props = {
@@ -13,33 +12,11 @@ const PopUpUserMenu: FC<Props> = ({ closeWindow }: Props) => {
 
   const authData = useAppSelector(state => state.authData)
 
-
-  const profile = (e: React.MouseEvent) => {
-    e.preventDefault();
-
-    closeWindow();
-    myHistory.push(`profile/${authData.username}`);
-  };
-
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
 
     closeWindow();
     logoutUser();
-  };
-
-  const login = (e: React.MouseEvent) => {
-    e.preventDefault();
-
-    closeWindow();
-    myHistory.push('/login');
-  };
-
-  const register = (e: React.MouseEvent) => {
-    e.preventDefault();
-
-    closeWindow();
-    myHistory.push('/register');
   };
 
 

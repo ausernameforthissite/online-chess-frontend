@@ -1,0 +1,20 @@
+export interface IChessGameWebsocketResponse {
+  type: ChessGameWebsocketResponseEnum
+}
+
+
+export enum ChessGameWebsocketResponseEnum {
+  INFO = "INFO",
+  SUBSCRIBED = "SUBSCRIBED",
+  DISCONNECTED = "DISCONNECTED",
+  CHESS_MOVE = "CHESS_MOVE",
+  DRAW = "DRAW",
+  REJECT_DRAW = "REJECT_DRAW",
+  GAME_RESULT = "GAME_RESULT",
+  GENERAL_BAD = "GENERAL_BAD",
+  CHESS_MOVE_BAD = "CHESS_MOVE_BAD",
+  DRAW_BAD = "DRAW_BAD",
+  REJECT_DRAW_BAD = "REJECT_DRAW_BAD",
+  ACCEPT_DRAW_BAD = "ACCEPT_DRAW_BAD",
+  SURRENDER_BAD = "SURRENDER_BAD",
+}

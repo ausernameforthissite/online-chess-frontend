@@ -2,8 +2,9 @@ import IMAGE_PATHS from "../images/ImagesConstants";
 import { BoardState } from "../models/chess-game/BoardState";
 import { boardLength, ChessColor, getInvertedColor, IChessCoords, PieceViewStatus } from "../models/chess-game/ChessCommon";
 import { changeBoardStateOneMove, IChessPiece } from "../models/chess-game/exports";
+import { IBoardCell } from "../models/chess-game/IBoardCell";
 import { BoardCellEntityEnum, IBoardCellEntity } from "../models/chess-game/IBoardCellEntity";
-import { IChessMatchResult } from "../models/chess-game/IChessMatchResult";
+import { IChessGameResult } from "../models/chess-game/IChessGameResult";
 import { IChessMoveFullData } from "../models/chess-game/IChessMove";
 
 
@@ -35,13 +36,31 @@ export function deleteSelectionFromBoardState(boardState: BoardState): void {
       if (boardState[i][j] !== null) {
 
         if ((boardState[i][j] as IBoardCellEntity).type === BoardCellEntityEnum.boardCell) {
-          boardState[i][j] = null;
+          let boardCell = boardState[i][j] as IBoardCell;
+          
+          if (boardCell.lastMove) {
+            boardCell.possibleMove = false;
+            boardCell.castling = undefined;
+          } else {
+            boardState[i][j] = null;
+          }
+
         } else if ((boardState[i][j] as IChessPiece).viewStatus !== PieceViewStatus.default) {
           (boardState[i][j] as IChessPiece).viewStatus = PieceViewStatus.default;
         }
       }
     }
   }
+}
+
+export function addLastMoveToBoardState(boardState: BoardState, startCoords: IChessCoords, endCoords: IChessCoords): void {
+  boardState[startCoords.numberCoord][startCoords.letterCoord] = {type: BoardCellEntityEnum.boardCell, lastMove: true} as IBoardCell;
+  (boardState[endCoords.numberCoord][endCoords.letterCoord] as IChessPiece).lastMove = true;
+}
+
+export function deleteLastMoveFromBoardState(boardState: BoardState, startCoords: IChessCoords, endCoords: IChessCoords): void {
+  boardState[startCoords.numberCoord][startCoords.letterCoord] = null;
+  (boardState[endCoords.numberCoord][endCoords.letterCoord] as IChessPiece).lastMove = false;
 }
 
 export const makeChessMoveForward = (boardState: BoardState, chessMove: IChessMoveFullData): (IChessCoords | null) => {
@@ -185,12 +204,12 @@ export function getDefaultBoardState(): BoardState {
 }
 
 
-export function getMatchResultString(matchResult: IChessMatchResult): string {
-  if (matchResult.technicalFinish) {
+export function getGameResultString(gameResult: IChessGameResult): string {
+  if (gameResult.technicalFinish) {
     return "Техническое завершение игры";
-  } else if (matchResult.draw) {
+  } else if (gameResult.draw) {
     return "Ничья";
-  } else if (matchResult.winnerColor === ChessColor.white) {
+  } else if (gameResult.winnerColor === ChessColor.white) {
     return "Победа белых";
   } else {
     return "Победа чёрных";

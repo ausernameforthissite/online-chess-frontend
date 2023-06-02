@@ -3,7 +3,7 @@ import { BoardState } from "../BoardState";
 import { IChessCoords, ChessColor, areCoordsEqual, PieceViewStatus } from "../ChessCommon";
 import { BoardCellEntityEnum, IBoardCellEntity } from "../IBoardCellEntity";
 import { findKingCoords, IChessPiece, isCoordPossible, isUnderAttack, willBeCheck } from "../exports";
-import { IPossibleMoveCell } from "../IPossibleMoveCell";
+import { IBoardCell } from "../IBoardCell";
 
 
 
@@ -29,7 +29,11 @@ function checkGoForward(currentPiece: IChessPiece, boardState: BoardState, direc
       if (boardState[endNumberCoord][startCoords.letterCoord] === null || (boardState[endNumberCoord][startCoords.letterCoord] as IBoardCellEntity).type === BoardCellEntityEnum.boardCell) {
 
         if (!willBeCheck(boardState, startCoords, {numberCoord: endNumberCoord, letterCoord: startCoords.letterCoord}, kingCoords, currentPiece.color)) {
-          boardState[endNumberCoord][startCoords.letterCoord] = {type: BoardCellEntityEnum.boardCell} as IPossibleMoveCell;
+          if (boardState[endNumberCoord][startCoords.letterCoord] === null) {
+            boardState[endNumberCoord][startCoords.letterCoord] = {type: BoardCellEntityEnum.boardCell, possibleMove: true} as IBoardCell;
+          } else {
+            (boardState[endNumberCoord][startCoords.letterCoord] as IBoardCell).possibleMove = true;
+          }
         }
 
       } else {
@@ -80,7 +84,11 @@ function checkEnPassant(currentPiece: IChessPiece, boardState: BoardState, enPas
       tempBoardState[startCoords.numberCoord][startCoords.letterCoord] = null;
   
       if (!isUnderAttack(tempBoardState, kingCoords, currentPiece.color)) {
-        boardState[endCoords.numberCoord][endCoords.letterCoord] = {type: BoardCellEntityEnum.boardCell} as IPossibleMoveCell;
+        if (boardState[endCoords.numberCoord][endCoords.letterCoord] === null) {
+          boardState[endCoords.numberCoord][endCoords.letterCoord] = {type: BoardCellEntityEnum.boardCell, possibleMove: true} as IBoardCell;
+        } else {
+          (boardState[endCoords.numberCoord][endCoords.letterCoord] as IBoardCell).possibleMove = true;
+        }
       }
 
     }

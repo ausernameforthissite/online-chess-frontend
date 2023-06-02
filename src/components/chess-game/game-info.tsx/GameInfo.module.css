@@ -1,0 +1,127 @@
+.gameInfoWithTimers {
+  width: 432px;
+  color: rgb(30, 30, 30);
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+  font-size: 12pt;
+}
+
+.gameInfo {
+  height: 478px;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(242, 232, 231);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+  padding: 5px 5px;
+}
+
+
+.chessMovesWithIndex {
+  display: flex;
+  flex-direction: row;
+  flex:1;
+  flex-wrap: wrap;
+  overflow-y: scroll;
+}
+
+.chessMovesWithIndex::-webkit-scrollbar {
+  width: 12px;
+}
+
+.chessMovesWithIndex::-webkit-scrollbar-track {
+  background-color: rgb(242, 232, 231);
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+
+.chessMovesWithIndex::-webkit-scrollbar-thumb {
+  background-color: rgb(151, 164, 170);
+}
+
+.index {
+  width: 50px;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(151, 164, 170);
+}
+
+.indexContainer {
+  height: 50px;
+  padding-left: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.chessMoves {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  background-color: rgb(45, 68, 82);
+}
+
+.gameHystory {
+  text-align: center;
+  font-size: 16pt;
+  font-weight: 500;
+}
+
+.messageContainer {
+  background-color: rgb(88, 120, 135);
+  color:rgb(242, 232, 231);
+  border-top: 1px solid black;
+}
+
+
+.resultBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 8px;
+}
+
+.resultFirstTextLine {
+  font-size: 16pt;
+  font-weight: 500;
+  padding-bottom: 4px;
+}
+
+.drawSurrenderBlock {
+  display: flex;
+  flex-direction: row;
+}
+
+.incomingDrawBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.incomingDrawText {
+  text-align: center;
+  padding: 8px 8px;
+}
+
+.incomingDrawButtons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+
+.drawButtonContainer {
+  flex: 3;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+}
+
+.surrenderButtonContainer {
+  flex: 3;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+}
+
+.spaceBetweenButtons {
+  flex: 1;
+}
