@@ -12,7 +12,7 @@ export const loginAxios = (params: IAuthRequest): AxiosPromise<IAuthResponse> =>
   axiosInstance.post(Endpoints.AUTH.LOGIN, params)
 
 export const refreshTokenAxios = (): AxiosPromise<IAuthResponse> => 
-  axiosInstance.get(Endpoints.AUTH.REFRESH)
+  axiosInstance.post(Endpoints.AUTH.REFRESH)
 
 export const logoutAxios = (): AxiosPromise =>
   axiosInstance.delete(Endpoints.AUTH.LOGOUT)

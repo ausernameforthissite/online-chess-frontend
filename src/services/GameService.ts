@@ -45,7 +45,6 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { ChessGameTypesType } from "../models/chess-game/ChessGameType";
 
 
-
 let chessGameSubscribeTimeout: ReturnType<typeof setTimeout> | null;
 
 
@@ -97,7 +96,7 @@ function onFindGameWebsocketClose(evt: CloseEvent): void {
 
 function onFindGameError(message: IMessage): void  {
   const headers: StompHeaders = message.headers;
-  const errorCode: WebsocketErrorEnum = headers["ErrorCode"] as unknown as WebsocketErrorEnum;
+  const errorCode: WebsocketErrorEnum = headers["errorCode"] as unknown as WebsocketErrorEnum;
 
 
   if (errorCode) {
@@ -128,7 +127,7 @@ async function findGameBeforeConnect(): Promise<void> {
     clientConnectHeaders["X-Authorization"] = "Bearer " + accessToken;
 
     if (searchGameType) {
-      clientConnectHeaders["GameType"] = searchGameType;
+      clientConnectHeaders["gameType"] = searchGameType;
       store.dispatch(gameSlice.actions.searchIncrementConnectionCount());
       return;
     } else {
@@ -156,7 +155,16 @@ function onFindGameMessageReceived(message: IMessage): void {
       return;
     case FindGameWebsocketResponseEnum.FIND_GAME_BAD:
       deactivateWebsocketClient(WebsocketConnectionEnum.FIND_GAME);
-      store.dispatch(gameSlice.actions.searchFailure({message: (response as IFindGameBadResponse).message, code: WebsocketErrorEnum.CLOSE_CONNECTION_GENERAL} as IWebsocketErrorDTO));
+      let message: String = (response as IFindGameBadResponse).message;
+      let code: WebsocketErrorEnum;
+
+      if (message.includes("gameId = ")) {
+        code = WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_IN_GAME;
+      } else {
+        code = WebsocketErrorEnum.CLOSE_CONNECTION_GENERAL;
+      }
+
+      store.dispatch(gameSlice.actions.searchFailure({message, code} as IWebsocketErrorDTO));
       return;
     case FindGameWebsocketResponseEnum.CANCELED:
       deactivateWebsocketClient(WebsocketConnectionEnum.FIND_GAME);
@@ -190,7 +198,6 @@ export function cancelFindGame(): void {
       store.dispatch(gameSlice.actions.searchCancelFailure(e.message))
   }
 }
-
 
 export async function getGameState(gameId: string): Promise<void> {
   try {
@@ -330,7 +337,7 @@ function onConnectedToChessGame(): void  {
   doSetTimeout();
   store.dispatch(gameSlice.actions.subscribeSuccess());
   sendMessageToWebsocket(WebsocketConnectionEnum.CHESS_GAME, chessGameInfoRequest);
-};
+}
 
 function onChessGameWebsocketClose(evt: CloseEvent): void {
   console.log("Close event code: " + evt.code);
@@ -348,11 +355,11 @@ function onChessGameWebsocketClose(evt: CloseEvent): void {
   } else if (gameData.subscribing || gameData.subscribed) {
     store.dispatch(gameSlice.actions.subscribeFailure());
   }
-};
+}
 
 function onChessGameError(message: IMessage): void  {
   const headers: StompHeaders = message.headers;
-  const errorCode: WebsocketErrorEnum = headers["ErrorCode"] as unknown as WebsocketErrorEnum;
+  const errorCode: WebsocketErrorEnum = headers["errorCode"] as unknown as WebsocketErrorEnum;
 
   if (errorCode) {
     switch(errorCode) {
@@ -369,7 +376,7 @@ function onChessGameError(message: IMessage): void  {
   } else {
     console.error(message.body);
   }
-};
+}
 
 async function chessGameBeforeConnect(): Promise<void> {
   const client: CompatClient = WebsocketClientsHolder.getInstance(WebsocketConnectionEnum.CHESS_GAME);
@@ -387,8 +394,6 @@ async function chessGameBeforeConnect(): Promise<void> {
     }
   }
 }
-
-
 
 function onChessGameMessageReceived(message: IMessage): void {
   const response: IChessGameWebsocketResponse = JSON.parse(message.body);
@@ -458,7 +463,6 @@ function onChessGameMessageReceived(message: IMessage): void {
   }
   store.dispatch(gameSlice.actions.failCurrentChessGameActions());
 }
-
 
 export function sendChessMove(chessMoveEnd: ISelectChessPieceEnd) : void {
   try {

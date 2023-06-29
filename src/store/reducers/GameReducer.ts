@@ -190,12 +190,12 @@ export const gameSlice = createSlice({
 
       if (action.payload) {
         if (action.payload.code === WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_IN_GAME) {
-          const splittedMessage: Array<string> = action.payload.message.split(" gameId=");
+          const splittedMessage: Array<string> = action.payload.message.split(" gameId = ");
 
           if (splittedMessage.length === 2) {
             state.gameId = splittedMessage[1];
             state.activeGame = true;
-            state.searchError = splittedMessage[0];
+            state.searchError = action.payload.message;
             state.searchErrorCode = WebsocketErrorEnum.CLOSE_CONNECTION_ALREADY_IN_GAME;
           } else {
             state.searchError = "Некорректный ответ сервера.";

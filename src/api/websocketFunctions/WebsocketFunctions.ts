@@ -8,7 +8,7 @@ export enum WebsocketConnectionEnum { FIND_GAME, CHESS_GAME }
 
 interface IMyHeaders {
   "X-Authorization"?: string,
-  "Game-Id"?: string
+  "game-Id"?: string
 }
 
 export async function connectToWebsocket(websocketConnectionType: WebsocketConnectionEnum, onConnectCb: Function, onWebSocketCloseCb: closeEventCallbackType, onErrorCb: Function, beforeConnectCb: () => Promise<void>, gameId?: string): Promise<void> {
@@ -27,7 +27,7 @@ export async function connectToWebsocket(websocketConnectionType: WebsocketConne
       break;
 
     case WebsocketConnectionEnum.CHESS_GAME:
-      headers["Game-Id"] = gameId;
+      headers["game-Id"] = gameId;
       break;
     default:
       throw new Error("Incorrect websocketConnectionType: " + websocketConnectionType);

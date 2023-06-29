@@ -101,14 +101,6 @@ const SearchGame: FC = () => {
                 <p>Подключаемся к серверу...</p>
               :
                 <Fragment>
-                  <form>
-                    <label>
-                      Webscoket request:
-                      <input value={jsonToSend} type="text" onChange={(e) => {setJsonToSend(e.target.value)}}/>
-                    </label>
-                    <button style={{color: "black"}} onClick={sendToWebsocket}>Send to Webscoket</button>
-                  </form>
-                  
                   {gameData.searchError ? 
                     <Fragment>
                       <p>{gameData.searchError}</p>
